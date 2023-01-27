@@ -1,0 +1,1 @@
+for i in `ls *.spec`;do rpmbuild -bs $i ;done

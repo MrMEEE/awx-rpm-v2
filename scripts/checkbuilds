@@ -1,0 +1,8 @@
+cd /opt/awx-rpm-v2/packages/
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+for i in `ls /root/rpmbuild/SRPMS/`;do PACKAGE=$(echo $i |sed 's/src/noarch/g' |sed 's/python/python3/g' | sed 's/python33/python3/g'); if [[ -f "$PACKAGE" ]]; then if [[ "$1" == "--all" ]]; then echo -e "$PACKAGE ${GREEN}Built${NC}"; fi; else  echo -e "$PACKAGE ${RED}Missing${NC}";fi ; done
+

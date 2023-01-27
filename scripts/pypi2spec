@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+	echo "Please provide AWX version"
+	exit 1
+fi
+
+VERSION=$1
+
+cd /opt/awx-rpm-v2/awx/
+
+git checkout -q devel
+git pull -q
+
+if [ `git tag |grep $VERSION$` ]; then
+	git -c advice.detachedHead=false checkout -q $VERSION
+else
+	echo "Version $VERSION doesn't exist"
+fi
+
+if [ -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
+	if [[ $2 != "force" ]]; then
+		echo "Version is already created, force to overwrite"
+		exit 1
+	else
+		rm -rf "/opt/awx-rpm-v2/deps/$VERSION"
+	fi
+fi
+
+mkdir -p /opt/awx-rpm-v2/deps/$VERSION
+
+cat /opt/awx-rpm-v2/awx/requirements/requirements.txt | grep -v "#" > /opt/awx-rpm-v2/deps/$VERSION/requirements.txt
+
+cd /opt/awx-rpm-v2/deps/$VERSION
+
+for i in `cat /opt/awx-rpm-v2/deps/$VERSION/requirements.txt | sed 's/\[.*\]//'`;do 
+	PACKAGE=$(echo $i | cut -f1 -d"=") 
+	PACKAGEVERSION=$(echo $i | cut -f3 -d"=")
+	echo "Generating SPEC-file for $PACKAGE version $PACKAGEVERSION"
+	pyp2spec -v $PACKAGEVERSION $PACKAGE 
+done
+
+echo "Setting current version to $VERSION"
+
+echo "$VERSION" > /opt/awx-rpm-v2/working-version
