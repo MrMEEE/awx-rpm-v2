@@ -1,1 +1,46 @@
-for i in `ls /root/rpmbuild/SRPMS/*.src.rpm`; do mock -r epel-9-x86_64 --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 --no-clean $i && cp /var/lib/mock/rhel+epel-9-x86_64/result/*.rpm /root/packages/ && mock -r epel-9-x86_64 --clean ;done
+#!/bin/bash
+
+VERSION=$(cat /opt/awx-rpm-v2/working-version)
+
+if [ ! -z $1 ] && [ "$1" != "force" ];then
+        VERSION=$1
+fi
+
+if [ ! -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
+        echo "SPECs for version $VERSION not generated"
+        exit 1
+fi
+
+if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS" ]; then
+        if [ "$2" == "force" ] || [ "$1" == "force" ]; then
+                echo "Removing built packages"
+		rm -rf "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS"
+        fi
+fi
+
+echo "Creating output folder"
+mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+
+cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+
+mock -r epel-9-x86_64 --clean
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
+        PACKAGE=$(echo $i |sed 's/src/noarch/g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
+        if [[ -f "$PACKAGE" ]]; then
+                echo -e "$PACKAGE ${GREEN}Built${NC}"
+        else
+                echo -e "$PACKAGE ${RED}Missing${NC}... Building.."
+		mock -r epel-9-x86_64 --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$i
+		rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
+		cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+		rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*
+		mock -r epel-9-x86_64 --clean
+		
+        fi
+done
+

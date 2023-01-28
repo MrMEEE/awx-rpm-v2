@@ -1,8 +1,36 @@
-cd /opt/awx-rpm-v2/packages/
+#!/bin/bash
+
+VERSION=$(cat /opt/awx-rpm-v2/working-version)
+
+if [ ! -z $1 ] && [ "$1" != "force" ] && [ "$1" != "all" ];then
+        VERSION=$1
+fi
+
+if [ ! -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
+        echo "SPECs for version $VERSION not generated"
+        exit 1
+fi
+
+if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS" ]; then
+        if [ "$2" == "force" ] || [ "$1" == "force" ]; then
+                rm -rf "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS"
+        fi
+fi
+
+cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-for i in `ls /root/rpmbuild/SRPMS/`;do PACKAGE=$(echo $i |sed 's/src/noarch/g' |sed 's/python/python3/g' | sed 's/python33/python3/g'); if [[ -f "$PACKAGE" ]]; then if [[ "$1" == "--all" ]]; then echo -e "$PACKAGE ${GREEN}Built${NC}"; fi; else  echo -e "$PACKAGE ${RED}Missing${NC}";fi ; done
+for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do 
+	PACKAGE=$(echo $i |sed 's/src/noarch/g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
+        if [[ -f "$PACKAGE" ]]; then 
+		if [[ "$1" == "all" ]]; then 
+			echo -e "$PACKAGE ${GREEN}Built${NC}" 
+		fi 
+	else  
+		echo -e "$PACKAGE ${RED}Missing${NC}"
+	fi 
+done
 

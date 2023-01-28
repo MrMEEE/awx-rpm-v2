@@ -1,1 +1,31 @@
-for i in `ls *.spec`;do rpmbuild -bs $i ;done
+#!/bin/bash
+
+VERSION=$(cat /opt/awx-rpm-v2/working-version)
+
+if [ ! -z $1 ] && [ "$1" != "force" ];then
+        VERSION=$1
+fi
+
+if [ ! -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
+        echo "SPECs for version $VERSION not generated"
+        exit 1
+fi
+
+echo "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS"
+
+if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS" ]; then
+	if [ "$2" != "force" ] && [ "$1" != "force" ]; then
+		echo "SRPMs already generated, apply force to regenerate"
+		exit
+	else
+		rm -rf "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS"
+	fi 
+fi
+
+echo "Building SRPMS for version $VERSION"
+
+cd "/opt/awx-rpm-v2/deps/$VERSION"
+
+for i in `ls *.spec`;do 
+	rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $i 
+done
