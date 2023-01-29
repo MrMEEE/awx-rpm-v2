@@ -24,8 +24,9 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do 
-	PACKAGE=$(echo $i |sed 's/src/noarch/g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
-        if [[ -f "$PACKAGE" ]]; then 
+	PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
+	PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
+        if [[ "$PACKAGEPRESENT" != "" ]]; then 
 		if [[ "$1" == "all" ]]; then 
 			echo -e "$PACKAGE ${GREEN}Built${NC}" 
 		fi 

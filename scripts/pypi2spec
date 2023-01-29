@@ -40,6 +40,10 @@ for i in `cat /opt/awx-rpm-v2/deps/$VERSION/requirements.txt | sed 's/\[.*\]//'`
 	pyp2spec -v $PACKAGEVERSION $PACKAGE 
 done
 
+mkdir -p /opt/awx-rpm-v2/deps/$VERSION/original
+
+cp /opt/awx-rpm-v2/deps/$VERSION/*.spec /opt/awx-rpm-v2/deps/$VERSION/*.conf /opt/awx-rpm-v2/deps/$VERSION/original/
+
 echo "Setting current version to $VERSION"
 
 echo "$VERSION" > /opt/awx-rpm-v2/working-version

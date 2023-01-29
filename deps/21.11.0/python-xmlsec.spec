@@ -9,8 +9,8 @@ License:        MIT
 URL:            https://github.com/mehcode/python-xmlsec
 Source:         %{pypi_source xmlsec}
 
-BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildArch:      x86_64
+BuildRequires:  python3-devel xmlsec1-openssl xmlsec1-nss xmlsec1 xmlsec1-devel gcc libtool-ltdl-devel
 
 
 # Fill in the actual package description to submit package to Fedora
