@@ -25,3 +25,16 @@ Talk to you all soon..
 **Install guide, tools, utilities will be located at: https://awx.wiki in time.. they are outdated for now
 
 **LinkedIn group for Questions, support, talk and more: https://www.linkedin.com/groups/13694893/
+
+
+-----------------------------------
+
+scripts:
+
+buildsrc: Build src.rpm packages for the generated spec files
+changeversion: Change the AWX version we are working on
+checkbuilds: Check status of builds
+getsources: Get source files for generated spec files 
+mockbuild: Build the generated src.rpm-files to rpms with mock
+pypi2spec: Generate specfiles for the requirement files
+single-mockbuild: (re)build a single build, also generating a new src.rpm before build the rpm
