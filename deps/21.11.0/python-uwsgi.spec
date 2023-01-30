@@ -9,8 +9,8 @@ License:        GPL2
 URL:            https://uwsgi-docs.readthedocs.io/en/latest/
 Source:         %{pypi_source uwsgi}
 
-BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildArch:      x86_64
+BuildRequires:  python3-devel gcc
 
 
 # Fill in the actual package description to submit package to Fedora

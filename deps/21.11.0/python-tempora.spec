@@ -10,7 +10,7 @@ URL:            https://github.com/jaraco/tempora
 Source:         %{pypi_source tempora}
 
 BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildRequires:  python3-devel python3-pytest python3-freezegun
 
 
 # Fill in the actual package description to submit package to Fedora

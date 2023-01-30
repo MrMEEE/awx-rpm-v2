@@ -10,7 +10,7 @@ URL:            https://twistedmatrix.com/
 Source:         %{pypi_source Twisted}
 
 BuildArch:      noarch
-BuildRequires:  python3-devel python3-cryptography python3-bcrypt
+BuildRequires:  python3-devel python3-cryptography python3-bcrypt python3-pyasn1 python3-tkinter python3-hamcrest python3-cfnetwork glibc-langpack-en
 
 
 # Fill in the actual package description to submit package to Fedora

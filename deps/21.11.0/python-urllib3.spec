@@ -10,7 +10,7 @@ URL:            https://urllib3.readthedocs.io/
 Source:         %{pypi_source urllib3}
 
 BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildRequires:  python3-devel python3-python-ntlm
 
 
 # Fill in the actual package description to submit package to Fedora

@@ -10,7 +10,7 @@ URL:            https://github.com/crossbario/txaio
 Source:         %{pypi_source txaio}
 
 BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildRequires:  python3-devel python3-twisted
 
 
 # Fill in the actual package description to submit package to Fedora

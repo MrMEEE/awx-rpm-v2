@@ -23,15 +23,27 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+BUILT=0
+MISSING=0
+
 for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do 
 	PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
 	PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
-        if [[ "$PACKAGEPRESENT" != "" ]]; then 
+	PYTHONPACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python/g')
+	PYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
+        if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]]; then
+		BUILT=$((BUILT+1)) 
 		if [[ "$1" == "all" ]]; then 
-			echo -e "$PACKAGE ${GREEN}Built${NC}" 
+			echo -e "$PACKAGE ${GREEN}Built${NC}"
 		fi 
 	else  
 		echo -e "$PACKAGE ${RED}Missing${NC}"
+		MISSING=$((MISSING+1))
 	fi 
 done
+
+TOTAL=$(($MISSING+$BUILT))
+
+echo
+echo "$TOTAL total packages, $BUILT packages built succesfully, $MISSING packages left to fix"
 
