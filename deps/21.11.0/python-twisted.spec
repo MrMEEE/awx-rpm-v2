@@ -1,3 +1,5 @@
+%bcond_without check
+
 Name:           python-twisted
 Version:        22.10.0
 Release:        1%{?dist}
@@ -10,7 +12,7 @@ URL:            https://twistedmatrix.com/
 Source:         %{pypi_source Twisted}
 
 BuildArch:      noarch
-BuildRequires:  python3-devel python3-cryptography python3-bcrypt python3-pyasn1 python3-tkinter python3-hamcrest python3-cfnetwork glibc-langpack-en
+BuildRequires:  python3-devel python3-cryptography python3-bcrypt python3-pyasn1 python3-tkinter python3-hamcrest glibc-langpack-en
 
 
 # Fill in the actual package description to submit package to Fedora
