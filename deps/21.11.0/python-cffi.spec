@@ -9,8 +9,8 @@ License:        MIT
 URL:            http://cffi.readthedocs.org
 Source:         %{pypi_source cffi}
 
-BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildArch:      x86_64
+BuildRequires:  python3-devel gcc libffi-devel
 
 
 # Fill in the actual package description to submit package to Fedora

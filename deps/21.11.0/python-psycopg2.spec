@@ -9,8 +9,8 @@ License:        LGPLv2+
 URL:            https://psycopg.org/
 Source:         %{pypi_source psycopg2}
 
-BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildArch:      x86_64
+BuildRequires:  python3-devel libpq-devel gcc
 
 
 # Fill in the actual package description to submit package to Fedora

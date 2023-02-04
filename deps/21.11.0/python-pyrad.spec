@@ -10,7 +10,7 @@ URL:            https://github.com/pyradius/pyrad
 Source:         %{pypi_source pyrad}
 
 BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildRequires:  python3-devel python3-poetry
 
 
 # Fill in the actual package description to submit package to Fedora

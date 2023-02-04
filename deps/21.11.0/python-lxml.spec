@@ -10,7 +10,7 @@ URL:            https://lxml.de/
 Source:         %{pypi_source lxml}
 
 BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildRequires:  python3-devel python3-wheel
 
 
 # Fill in the actual package description to submit package to Fedora

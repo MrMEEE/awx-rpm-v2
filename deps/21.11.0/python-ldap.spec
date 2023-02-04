@@ -9,8 +9,8 @@ License:        Python
 URL:            https://www.python-ldap.org/
 Source:         %{pypi_source python-ldap}
 
-BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildArch:      x86_64
+BuildRequires:  python3-devel gcc openldap-devel
 
 
 # Fill in the actual package description to submit package to Fedora

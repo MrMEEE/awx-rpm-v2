@@ -12,8 +12,7 @@ URL:            https://twistedmatrix.com/
 Source:         %{pypi_source Twisted}
 
 BuildArch:      noarch
-BuildRequires:  python3-devel python3-cryptography python3-bcrypt python3-pyasn1 python3-tkinter python3-hamcrest glibc-langpack-en
-
+BuildRequires:  python3-devel python3-cryptography python3-bcrypt python3-pyasn1 python3-tkinter python3-hamcrest glibc-langpack-en python3-pyopenssl
 
 # Fill in the actual package description to submit package to Fedora
 %global _description %{expand:
@@ -24,6 +23,7 @@ This is package 'twisted' generated automatically by pyp2spec.}
 
 %package -n     python3-twisted
 Summary:        %{summary}
+Provides: python3dist(twisted[tls]) python3.9dist(twisted[tls])
 
 %description -n python3-twisted %_description
 
@@ -33,7 +33,7 @@ Summary:        %{summary}
 
 
 %generate_buildrequires
-%pyproject_buildrequires
+%pyproject_buildrequires -x tls
 
 
 %build

@@ -1,3 +1,4 @@
+%undefine __brp_mangle_shebangs
 Name:           python-django
 Version:        3.2.16
 Release:        1%{?dist}

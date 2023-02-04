@@ -10,7 +10,7 @@ URL:            https://github.com/jaraco/jaraco.text
 Source:         %{pypi_source jaraco.text}
 
 BuildArch:      noarch
-BuildRequires:  python3-devel
+BuildRequires:  python3-devel python3-inflect
 
 
 # Fill in the actual package description to submit package to Fedora
