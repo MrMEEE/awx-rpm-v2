@@ -47,5 +47,5 @@ done
 TOTAL=$(($MISSING+$BUILT))
 
 echo
-echo "$TOTAL total packages, $BUILT packages built succesfully, $MISSING packages left to fix"
+echo "$TOTAL total packages, $BUILT packages built successfully, $MISSING packages left to fix"
 
