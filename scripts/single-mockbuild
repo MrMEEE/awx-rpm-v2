@@ -32,9 +32,9 @@ if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM" ];then
 fi
 
 PACKAGEVERSION=$(echo $SRPM | rev | cut -f2 -d- | rev)
-PACKAGENAME=$(echo $SRPM | rev | cut -f3- -d- | rev)
+PACKAGENAME=$(echo $SRPM | rev | cut -f3- -d- | rev | cut -f2- -d-)
 
-/opt/awx-rpm-v2/scripts/buildsrc $VERSION $PACKAGENAME.spec 
+/opt/awx-rpm-v2/scripts/buildsrc $VERSION $PACKAGENAME
 
 mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 

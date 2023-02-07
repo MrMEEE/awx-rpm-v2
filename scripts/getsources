@@ -1,6 +1,7 @@
 #!/bin/bash
 
 VERSION=$(cat /opt/awx-rpm-v2/working-version)
+PACKAGE=$2
 
 if [ ! -z $1 ];then
 	VERSION=$1
@@ -15,6 +16,10 @@ echo "Fetching sources for version $VERSION"
 
 cd "/opt/awx-rpm-v2/deps/$VERSION"
 
-for i in `ls *.spec`;do 
-	spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $i 
-done
+if [[ $PACKAGE == "" ]];then
+	for i in `ls *.spec`;do 
+		spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $i 
+	done
+else
+	spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" python-$PACKAGE.spec
+fi
