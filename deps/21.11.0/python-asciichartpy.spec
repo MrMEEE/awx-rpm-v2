@@ -28,7 +28,7 @@ Summary:        %{summary}
 
 %prep
 %autosetup -p1 -n asciichartpy-%{version}
-
+touch README.md
 
 %generate_buildrequires
 %pyproject_buildrequires

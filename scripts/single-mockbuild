@@ -46,7 +46,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM --rpmbuild-opts="--nocheck"
+mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM --rpmbuild-opts="--nocheck" --no-cleanup-after
 rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
 cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
 createrepo_c /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/

@@ -9,8 +9,8 @@ License:        BSD
 URL:            https://lxml.de/
 Source:         %{pypi_source lxml}
 
-BuildArch:      noarch
-BuildRequires:  python3-devel python3-wheel
+BuildArch:      x86_64
+BuildRequires:  python3-devel python3-wheel gcc libxml2-devel python3-pip libxslt-devel
 
 
 # Fill in the actual package description to submit package to Fedora
@@ -30,8 +30,6 @@ Summary:        %{summary}
 %autosetup -p1 -n lxml-%{version}
 
 
-%generate_buildrequires
-%pyproject_buildrequires
 
 
 %build

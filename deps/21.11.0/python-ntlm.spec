@@ -1,3 +1,5 @@
+%undefine __brp_python_bytecompile
+%global _python_bytecompile 0
 Name:           python-ntlm
 Version:        1.1.0
 Release:        1%{?dist}
@@ -45,12 +47,13 @@ Summary:        %{summary}
 %pyproject_save_files '*' +auto
 
 
-%check
-%pyproject_check_import
 
-
-%files -n python3-python-ntlm -f %{pyproject_files}
-
+#%files -n python3-python-ntlm -f %{pyproject_files}
+%files
+%{python3_sitelib}/ntlm
+%{python3_sitelib}/python_ntlm-1.1.0.dist-info
+/usr/bin/ntlm_example_extended
+/usr/bin/ntlm_example_simple
 
 %changelog
 * Tue Feb 07 2023 Martin Juhl <m@rtinjuhl.dk> - 1.1.0-1

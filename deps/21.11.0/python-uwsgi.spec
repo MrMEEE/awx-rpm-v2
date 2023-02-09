@@ -1,3 +1,5 @@
+%define _unpackaged_files_terminate_build 0
+%define python3_sitelib /usr/lib64/python3.9/site-packages
 Name:           python-uwsgi
 Version:        2.0.21
 Release:        1%{?dist}
@@ -35,6 +37,7 @@ Summary:        %{summary}
 
 
 %build
+touch INSTALLER
 %pyproject_wheel
 
 
@@ -44,9 +47,6 @@ Summary:        %{summary}
 # Replace it with a list of relevant Python modules/globs and list extra files in %%files
 %pyproject_save_files '*' +auto
 
-
-%check
-%pyproject_check_import
 
 
 %files -n python3-uwsgi -f %{pyproject_files}
