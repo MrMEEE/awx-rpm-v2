@@ -21,3 +21,10 @@ setuptools-twine
 twine
 readme-renderer
 python-ntlm
+django-rest-swagger
+openapi-codec
+django-debug-toolbar
+ansible_runner
+build
+pyproject-hooks
+python-tss-sdk

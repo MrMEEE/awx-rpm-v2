@@ -48,15 +48,15 @@ if [[ $PACKAGE == "" ]];then
 		PACKAGE=$(echo $i | cut -f1 -d"=") 
 		PACKAGEVERSION=$(echo $i | cut -f3 -d"=")
 		echo "Generating SPEC-file for $PACKAGE version $PACKAGEVERSION"
-		pyp2spec -v $PACKAGEVERSION $PACKAGE 
+		pyp2spec --license gpl -v $PACKAGEVERSION $PACKAGE 
 	done
 else
         if [[ $PACKAGEVERSION == "" ]];then
 		echo "Generating SPEC-file for $PACKAGE"
-        	pyp2spec $PACKAGE
+        	pyp2spec --license gpl $PACKAGE
 	else
 		echo "Generating SPEC-file for $PACKAGE version $PACKAGEVERSION"
-	        pyp2spec -v $PACKAGEVERSION $PACKAGE
+	        pyp2spec --license gpl -v $PACKAGEVERSION $PACKAGE
 	fi
 fi
 

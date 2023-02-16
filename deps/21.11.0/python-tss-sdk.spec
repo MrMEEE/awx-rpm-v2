@@ -1,13 +1,13 @@
-Name:           dateutil
-Version:        2.8.2
+Name:           python-tss-sdk
+Version:        1.2.0
 Release:        1%{?dist}
-Summary:        Extensions to the standard Python datetime module
+Summary:        The Delinea Secret Server Python SDK
 
 # Check if the automatically generated License and its spelling is correct for Fedora
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/LicensingGuidelines/
-License:        ASL and BSD
-URL:            https://github.com/dateutil/dateutil
-Source:         %{pypi_source python-dateutil}
+License:        gpl
+URL:            https://pypi.org/project/python-tss-sdk/
+Source:         %{pypi_source python-tss-sdk}
 
 BuildArch:      noarch
 BuildRequires:  python3-devel
@@ -15,19 +15,19 @@ BuildRequires:  python3-devel
 
 # Fill in the actual package description to submit package to Fedora
 %global _description %{expand:
-This is package 'python-dateutil' generated automatically by pyp2spec.}
+This is package 'python-tss-sdk' generated automatically by pyp2spec.}
 
 
 %description %_description
 
-%package -n     python3-dateutil
+%package -n     python3-python-tss-sdk
 Summary:        %{summary}
 
-%description -n python3-dateutil %_description
+%description -n python3-python-tss-sdk %_description
 
 
 %prep
-%autosetup -p1 -n dateutil-%{version}
+%autosetup -p1 -n python-tss-sdk-%{version}
 
 
 %generate_buildrequires
@@ -49,9 +49,9 @@ Summary:        %{summary}
 %pyproject_check_import
 
 
-%files -n python3-dateutil -f %{pyproject_files}
+%files -n python3-python-tss-sdk -f %{pyproject_files}
 
 
 %changelog
-* Fri Jan 27 2023 root - 2.8.2-1
+* Thu Feb 16 2023 Martin Juhl <m@rtinjuhl.dk> - 1.2.0-1
 - Initial package

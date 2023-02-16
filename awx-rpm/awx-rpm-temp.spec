@@ -1,5 +1,5 @@
 %define  debug_package %{nil}
-%define _prefix /opt/awx
+%define _prefix /opt/awx-rpm
 %define _mandir %{_prefix}/share/man
 %global __os_install_post %{nil}
 
@@ -10,22 +10,21 @@
 %define service_configdir /etc/awx-rpm
 
 Summary: Ansible AWX
-Name: ansible-awx
-Version: 21.11.0
+Name: awx-rpm
+Version: ¤VERSION¤
 Release: 1%{dist}
-Source0: https://github.com/ansible/awx/archive/refs/tags/21.11.0.zip
+Source0: awx-¤VERSION¤.tar.gz
 #Source1: settings.py.dist
-#%if 0%{?el7}
 #Source2: awx-cbreceiver.service
 #Source3: awx-dispatcher.service
 #Source5: awx-channels-worker.service
 #Source6: awx-daphne.service
 #Source7: awx-web.service
-#%endif
 #Source8: nginx.conf.example
 #Source9: awx-create-venv
 #Source10: awx-rpm-logo.svg
 #Source11: awx.service
+Patch0: patch-%{version}.patch
 License: GPLv3
 Group: AWX
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}.buildroot
@@ -33,8 +32,10 @@ Vendor: AWX
 Prefix: %{_prefix}
 AutoReqProv: false
 
+BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build
 ¤BUILDREQUIRES¤
 
+Requires: python3 nodejs npm gettext
 ¤REQUIRES¤
 
 %{?systemd_requires}
@@ -43,43 +44,47 @@ AutoReqProv: false
 %{summary}
 
 %prep
-%setup -q -n awx-21.11.0
+%setup -q -n awx
+%patch0 -p0
+
+%build
+git checkout devel
+git checkout %{version}
+echo 'node-options="--openssl-legacy-provider"' >> awx/ui/.npmrc
+GIT_BRANCH=21.11.0 VERSION=21.11.0 python3 -m build -s
 
 %install
-# Setup build environment
-#mkdir -p $RPM_BUILD_ROOT/opt/rh/rh-python36/root/usr/
-#scl enable rh-python36 "pip3 install --root=$RPM_BUILD_ROOT ."
+mkdir -p %{buildroot}%{_prefix}
+cp dist/awx-*.tar.gz %{buildroot}%{_prefix}/
+pushd %{buildroot}%{_prefix}
+tar zxvf awx-*.tar.gz
+rm awx-*.tar.gz
+mv awx-*/* .
+rm -rf awx-*
+pip3 install --root=$RPM_BUILD_ROOT .
+popd
+sed -i "s|/builddir.*.x86_64||g" $RPM_BUILD_ROOT/usr/bin/awx-manage
+pushd %{buildroot}/usr/lib/python3.9/site-packages/
+for i in `find -type f`; do
+	sed -i "s|/builddir.*.x86_64||g" $i
+done
+popd
+
+make ui-release
 
 # Collect django static
-#cat > _awx_rpmbuild_collectstatic_settings.py <<EOF
-#from awx.settings.defaults import *
-#DEFAULTS_SNAPSHOT = {}
-#CLUSTER_HOST_ID = "awx-static"
-#STATIC_ROOT = "static/"
-#LOG_AGGREGATOR_AUDIT = False
-#EOF
+mkdir -p /var/log/tower/
+python3 manage.py collectstatic --clear --noinput
 
-#export DJANGO_SETTINGS_MODULE="_awx_rpmbuild_collectstatic_settings"
-#export PYTHONPATH="$PYTHONPATH:."
-#mkdir -p static/
-#sed -i 's$/usr/bin/awx-python$/opt/rh/rh-python36/root/usr/bin/python3$g' $RPM_BUILD_ROOT/opt/rh/rh-python36/root/usr/bin/awx-manage
-
-#scl enable rh-python36 rh-postgresql10 "$RPM_BUILD_ROOT/opt/rh/rh-python36/root/usr/bin/awx-manage collectstatic --noinput --clear"
-
-# Cleanup
-#unset PYTHONPATH
-#unset DJANGO_SETTINGS_MODULE
-
-#mkdir -p %{buildroot}%{service_homedir}
-#mkdir -p %{buildroot}%{service_logdir}
-#mkdir -p %{buildroot}%{_prefix}/bin
-#mkdir -p %{buildroot}%{service_configdir}
-#mkdir -p %{buildroot}/var/lib/awx/
-#echo ¤TOWER_VERSION¤ > %{buildroot}%{service_homedir}/.tower_version
+mkdir -p %{buildroot}%{service_homedir}
+mkdir -p %{buildroot}%{service_logdir}
+mkdir -p %{buildroot}%{_prefix}/bin
+mkdir -p %{buildroot}%{service_configdir}
+echo %{version} > %{buildroot}%{service_homedir}/.tower_version
 
 
 #cp %{_sourcedir}/settings.py.dist %{buildroot}%{service_configdir}/settings.py
-#mv static %{buildroot}%{_prefix}/static
+mv /var/lib/awx/public %{buildroot}%{_prefix}/public
 
 #%if 0%{?el7}
 # Install systemd configuration
@@ -89,15 +94,8 @@ AutoReqProv: false
 #done
 #%endif
 
-# Create fake python executable
-#cat > %{buildroot}%{_prefix}/bin/python <<"EOF"
-##!/bin/sh
-#export AWX_SETTINGS_FILE=/etc/tower/settings.py
-#exec scl enable rh-python36 "%{?el7:python3} \"$@\""
-#EOF
-
 # Create Virtualenv folder
-#mkdir -p %{buildroot}/var/lib/awx/venv
+mkdir -p %{buildroot}%{service_homedir}/venv
 
 # Install docs
 #cp %{_sourcedir}/nginx.conf.example ./
@@ -105,8 +103,6 @@ AutoReqProv: false
 # Install VENV Script
 #cp %{_sourcedir}/awx-create-venv $RPM_BUILD_ROOT/opt/rh/rh-python36/root/usr/bin/
 #mkdir -p $RPM_BUILD_ROOT/usr/bin/
-#ln -s /opt/rh/rh-python36/root/usr/bin/awx-create-venv $RPM_BUILD_ROOT/usr/bin/awx-create-venv
-#mkdir -p $RPM_BUILD_ROOT%{service_homedir}/venv
 
 #cp %{_sourcedir}/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/awx-rpm-logo.svg
 #mv $RPM_BUILD_ROOT/opt/awx/static/assets/logo-header.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-header.svg.orig
@@ -115,9 +111,9 @@ AutoReqProv: false
 #ln -s /opt/awx/static/assets/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg
 
 %pre
-#/usr/bin/getent group %{service_group} >/dev/null || /usr/sbin/groupadd --system %{service_group}
-#/usr/bin/getent passwd %{service_user} >/dev/null || /usr/sbin/useradd --no-create-home --system -g %{service_group} --home-dir %{service_homedir} -s /bin/bash %{service_user}
-#/usr/sbin/usermod -s /bin/bash %{service_user}
+/usr/bin/getent group %{service_group} >/dev/null || /usr/sbin/groupadd --system %{service_group}
+/usr/bin/getent passwd %{service_user} >/dev/null || /usr/sbin/useradd --no-create-home --system -g %{service_group} --home-dir %{service_homedir} -s /bin/bash %{service_user}
+/usr/sbin/usermod -s /bin/bash %{service_user}
 
 %post
 #%if 0%{?el7}
@@ -151,29 +147,25 @@ AutoReqProv: false
 
 %files
 %defattr(0644, awx, awx, 0755)
-%doc nginx.conf.example
-%attr(0755, root, root) /opt/rh/rh-python36/root/usr/bin/awx-manage
-%attr(0755, root, root) /opt/rh/rh-python36/root/usr/bin/awx-create-venv
-/usr/bin/awx-create-venv
-/opt/rh/rh-python36/root/usr/lib/python3.6/site-packages/awx
-%attr(0755, root, root) /opt/rh/rh-python36/root/usr/lib/python3.6/site-packages/awx/plugins/*/*.py
-%attr(0755, awx, awx) %{_prefix}/static
+#%doc nginx.conf.example
+%attr(0755, root, root) /usr/bin/awx-manage
+#%attr(0755, root, root) /opt/rh/rh-python36/root/usr/bin/awx-create-venv
+#/usr/bin/awx-create-venv
+%attr(0755, root, root) /usr/lib/python3.9/site-packages/awx
+%attr(0755, awx, awx) %{_prefix}
 %dir %attr(0750, %{service_user}, %{service_group}) %{service_homedir}
 %dir %attr(0750, %{service_user}, %{service_group}) %{service_homedir}/venv
 %{service_homedir}/.tower_version
 %dir %attr(0770, %{service_user}, %{service_group}) %{service_logdir}
-%config %{service_configdir}/settings.py
-/opt/rh/rh-python36/root/usr/lib/python3.6/site-packages/awx-*.egg-info/
-/usr/share/doc/awx/
-/opt/awx/bin/python
-/usr/bin/ansible-tower-service
-/usr/bin/ansible-tower-setup
-/usr/bin/awx-python
-/usr/bin/failure-event-handler
-/usr/share/awx
-/usr/share/sosreport/sos/plugins/tower.py
-/var/lib/awx/favicon.ico
-/var/lib/awx/wsgi.py
+#%config %{service_configdir}/settings.py
+#/usr/bin/ansible-tower-service
+#/usr/bin/ansible-tower-setup
+#/usr/bin/awx-python
+#/usr/bin/failure-event-handler
+#/usr/share/awx
+#/usr/share/sosreport/sos/plugins/tower.py
+#/var/lib/awx/favicon.ico
+#/var/lib/awx/wsgi.py
 
 
 %if 0%{?el7}
@@ -186,332 +178,8 @@ AutoReqProv: false
 %endif
 
 %changelog
-* Thu Feb 10 2023 22:55:34 +0000 Martin Juhl <m@rtinjuhl.dk> 21.11.0
-- New Git version build: 9.2.0.320
-* Tue Mar 03 2020 22:25:08 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.318
-- New Git version build: 9.2.0.318
-* Tue Mar 03 2020 21:55:35 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.316
-- New Git version build: 9.2.0.316
-* Tue Mar 03 2020 21:25:27 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.313
-- New Git version build: 9.2.0.313
-* Tue Mar 03 2020 20:55:23 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.311
-- New Git version build: 9.2.0.311
-* Tue Mar 03 2020 19:55:17 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.306
-- New Git version build: 9.2.0.306
-* Tue Mar 03 2020 18:55:45 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.304
-- New Git version build: 9.2.0.304
-* Tue Mar 03 2020 18:25:34 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.300
-- New Git version build: 9.2.0.300
-* Tue Mar 03 2020 16:25:12 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.298
-- New Git version build: 9.2.0.298
-* Mon Mar 02 2020 18:55:16 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.296
-- New Git version build: 9.2.0.296
-* Mon Mar 02 2020 16:55:55 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.294
-- New Git version build: 9.2.0.294
-* Mon Mar 02 2020 15:55:16 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.287
-- New Git version build: 9.2.0.287
-* Fri Feb 28 2020 21:25:48 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.285
-- New Git version build: 9.2.0.285
-* Fri Feb 28 2020 20:25:24 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.283
-- New Git version build: 9.2.0.283
-* Fri Feb 28 2020 17:25:27 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.281
-- New Git version build: 9.2.0.281
-* Fri Feb 28 2020 14:25:26 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.278
-- New Git version build: 9.2.0.278
-* Fri Feb 28 2020 00:55:47 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.276
-- New Git version build: 9.2.0.276
-* Fri Feb 28 2020 00:25:30 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.274
-- New Git version build: 9.2.0.274
-* Thu Feb 27 2020 22:25:12 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.272
-- New Git version build: 9.2.0.272
-* Thu Feb 27 2020 21:25:41 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.269
-- New Git version build: 9.2.0.269
-* Thu Feb 27 2020 09:25:10 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.267
-- New Git version build: 9.2.0.267
-* Wed Feb 26 2020 22:55:05 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.261
-- New Git version build: 9.2.0.261
-* Wed Feb 26 2020 20:55:36 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.258
-- New Git version build: 9.2.0.258
-* Wed Feb 26 2020 20:25:28 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.212
-- New Git version build: 9.2.0.212
-* Wed Feb 26 2020 19:25:11 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.208
-- New Git version build: 9.2.0.208
-* Wed Feb 26 2020 14:25:35 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.202
-- New Git version build: 9.2.0.202
-* Wed Feb 26 2020 13:25:27 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.200
-- New Git version build: 9.2.0.200
-* Tue Feb 25 2020 23:25:38 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.198
-- New Git version build: 9.2.0.198
-* Tue Feb 25 2020 21:25:33 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.191
-- New Git version build: 9.2.0.191
-* Tue Feb 25 2020 20:25:34 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.189
-- New Git version build: 9.2.0.189
-* Tue Feb 25 2020 16:55:24 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.187
-- New Git version build: 9.2.0.187
-* Tue Feb 25 2020 14:55:38 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.185
-- New Git version build: 9.2.0.185
-* Tue Feb 25 2020 14:25:28 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.180
-- New Git version build: 9.2.0.180
-* Mon Feb 24 2020 18:25:39 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.175
-- New Git version build: 9.2.0.175
-* Mon Feb 24 2020 15:25:50 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.173
-- New Git version build: 9.2.0.173
-* Mon Feb 24 2020 14:55:44 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.168
-- New Git version build: 9.2.0.168
-* Sat Feb 22 2020 13:25:29 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.164
-- New Git version build: 9.2.0.164
-* Fri Feb 21 2020 21:55:13 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.162
-- New Git version build: 9.2.0.162
-* Fri Feb 21 2020 20:55:30 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.160
-- New Git version build: 9.2.0.160
-* Fri Feb 21 2020 20:25:34 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.155
-- New Git version build: 9.2.0.155
-* Fri Feb 21 2020 17:55:32 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.135
-- New Git version build: 9.2.0.135
-* Fri Feb 21 2020 17:25:47 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.133
-- New Git version build: 9.2.0.133
-* Fri Feb 21 2020 15:55:08 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.131
-- New Git version build: 9.2.0.131
-* Thu Feb 20 2020 23:55:23 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.127
-- New Git version build: 9.2.0.127
-* Thu Feb 20 2020 23:25:29 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.125
-- New Git version build: 9.2.0.125
-* Thu Feb 20 2020 19:55:23 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.119
-- New Git version build: 9.2.0.119
-* Thu Feb 20 2020 14:25:31 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.107
-- New Git version build: 9.2.0.107
-* Wed Feb 19 2020 22:25:17 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.105
-- New Git version build: 9.2.0.105
-* Wed Feb 19 2020 19:55:22 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.103
-- New Git version build: 9.2.0.103
-* Wed Feb 19 2020 19:25:26 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.96
-- New Git version build: 9.2.0.96
-* Wed Feb 19 2020 17:25:30 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.92
-- New Git version build: 9.2.0.92
-* Wed Feb 19 2020 16:55:23 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.90
-- New Git version build: 9.2.0.90
-* Tue Feb 18 2020 16:55:34 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.85
-- New Git version build: 9.2.0.85
-* Tue Feb 18 2020 16:25:37 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.80
-- New Git version build: 9.2.0.80
-* Mon Feb 17 2020 19:25:24 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.77
-- New Git version build: 9.2.0.77
-* Mon Feb 17 2020 16:25:21 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.30
-- New Git version build: 9.2.0.30
-* Fri Feb 14 2020 18:55:27 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.28
-- New Git version build: 9.2.0.28
-* Thu Feb 13 2020 21:25:43 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.23
-- New Git version build: 9.2.0.23
-* Thu Feb 13 2020 20:25:24 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.19
-- New Git version build: 9.2.0.19
-* Thu Feb 13 2020 19:55:27 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.16
-- New Git version build: 9.2.0.16
-* Thu Feb 13 2020 16:25:29 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.14
-- New Git version build: 9.2.0.14
-* Thu Feb 13 2020 14:25:44 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.12
-- New Git version build: 9.2.0.12
-* Wed Feb 12 2020 21:55:35 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.10
-- New Git version build: 9.2.0.10
-* Wed Feb 12 2020 16:25:22 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.2
-- New Git version build: 9.2.0.2
-* Tue Feb 11 2020 22:26:00 +0000 Martin Juhl <mj@casalogic.dk> 9.2.0.0
-- New Git version build: 9.2.0.0
-* Tue Feb 11 2020 21:25:45 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.313
-- New Git version build: 9.1.1.313
-* Tue Feb 11 2020 19:26:05 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.311
-- New Git version build: 9.1.1.311
-* Tue Feb 11 2020 18:26:01 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.309
-- New Git version build: 9.1.1.309
-* Tue Feb 11 2020 16:55:46 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.305
-- New Git version build: 9.1.1.305
-* Tue Feb 11 2020 15:26:02 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.303
-- New Git version build: 9.1.1.303
-* Tue Feb 11 2020 14:55:36 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.301
-- New Git version build: 9.1.1.301
-* Tue Feb 11 2020 14:25:42 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.299
-- New Git version build: 9.1.1.299
-* Tue Feb 11 2020 03:26:23 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.297
-- New Git version build: 9.1.1.297
-* Tue Feb 11 2020 01:25:53 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.295
-- New Git version build: 9.1.1.295
-* Mon Feb 10 2020 23:55:47 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.281
-- New Git version build: 9.1.1.281
-* Mon Feb 10 2020 23:25:47 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.277
-- New Git version build: 9.1.1.277
-* Mon Feb 10 2020 22:55:49 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.275
-- New Git version build: 9.1.1.275
-* Mon Feb 10 2020 18:25:34 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.273
-- New Git version build: 9.1.1.273
-* Mon Feb 10 2020 16:55:31 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.271
-- New Git version build: 9.1.1.271
-* Mon Feb 10 2020 15:55:49 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.269
-- New Git version build: 9.1.1.269
-* Sun Feb 09 2020 14:25:56 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.267
-- New Git version build: 9.1.1.267
-* Fri Feb 07 2020 20:26:04 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.259
-- New Git version build: 9.1.1.259
-* Fri Feb 07 2020 19:25:52 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.257
-- New Git version build: 9.1.1.257
-* Fri Feb 07 2020 14:26:18 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.255
-- New Git version build: 9.1.1.255
-* Thu Feb 06 2020 21:55:46 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.253
-- New Git version build: 9.1.1.253
-* Thu Feb 06 2020 17:55:49 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.247
-- New Git version build: 9.1.1.247
-* Thu Feb 06 2020 15:55:37 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.245
-- New Git version build: 9.1.1.245
-* Wed Feb 05 2020 23:55:40 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.220
-- New Git version build: 9.1.1.220
-* Wed Feb 05 2020 23:25:39 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.213
-- New Git version build: 9.1.1.213
-* Wed Feb 05 2020 16:25:55 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.211
-- New Git version build: 9.1.1.211
-* Wed Feb 05 2020 15:25:32 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.209
-- New Git version build: 9.1.1.209
-* Wed Feb 05 2020 14:55:37 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.207
-- New Git version build: 9.1.1.207
-* Wed Feb 05 2020 00:26:04 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.205
-- New Git version build: 9.1.1.205
-* Tue Feb 04 2020 13:26:04 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.203
-- New Git version build: 9.1.1.203
-* Tue Feb 04 2020 03:26:00 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.201
-- New Git version build: 9.1.1.201
-* Mon Feb 03 2020 20:55:49 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.196
-- New Git version build: 9.1.1.196
-* Mon Feb 03 2020 17:55:48 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.194
-- New Git version build: 9.1.1.194
-* Mon Feb 03 2020 16:55:46 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.188
-- New Git version build: 9.1.1.188
-* Mon Feb 03 2020 14:55:57 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.185
-- New Git version build: 9.1.1.185
-* Fri Jan 31 2020 13:55:52 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.182
-- New Git version build: 9.1.1.182
-* Thu Jan 30 2020 22:25:53 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.180
-- New Git version build: 9.1.1.180
-* Wed Jan 29 2020 19:56:03 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.178
-- New Git version build: 9.1.1.178
-* Tue Jan 28 2020 22:26:38 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.176
-- New Git version build: 9.1.1.176
-* Tue Jan 28 2020 21:25:50 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.174
-- New Git version build: 9.1.1.174
-* Tue Jan 28 2020 20:55:49 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.172
-- New Git version build: 9.1.1.172
-* Tue Jan 28 2020 17:56:06 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.169
-- New Git version build: 9.1.1.169
-* Tue Jan 28 2020 15:26:01 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.167
-- New Git version build: 9.1.1.167
-* Tue Jan 28 2020 13:26:02 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.165
-- New Git version build: 9.1.1.165
-* Tue Jan 28 2020 04:25:54 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.163
-- New Git version build: 9.1.1.163
-* Mon Jan 27 2020 21:26:02 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.161
-- New Git version build: 9.1.1.161
-* Mon Jan 27 2020 20:25:55 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.158
-- New Git version build: 9.1.1.158
-* Mon Jan 27 2020 17:56:24 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.156
-- New Git version build: 9.1.1.156
-* Mon Jan 27 2020 15:26:01 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.154
-- New Git version build: 9.1.1.154
-* Fri Jan 24 2020 22:55:38 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.146
-- New Git version build: 9.1.1.146
-* Fri Jan 24 2020 19:55:50 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.144
-- New Git version build: 9.1.1.144
-* Fri Jan 24 2020 14:55:53 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.140
-- New Git version build: 9.1.1.140
-* Thu Jan 23 2020 22:25:45 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.138
-- New Git version build: 9.1.1.138
-* Thu Jan 23 2020 22:12:04 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.136
-* Thu Jan 23 2020 21:22:12 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.136
-* Thu Jan 23 2020 20:55:39 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.136
-- New Git version build: 9.1.1.136
-* Thu Jan 23 2020 20:25:50 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.133
-- New Git version build: 9.1.1.133
-* Thu Jan 23 2020 19:52:13 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.129
-* Thu Jan 23 2020 19:26:00 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.129
-- New Git version build: 9.1.1.129
-* Thu Jan 23 2020 18:56:09 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.127
-- New Git version build: 9.1.1.127
-* Thu Jan 23 2020 18:22:11 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 17:52:11 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 17:22:11 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 16:52:11 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 16:22:13 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 15:52:13 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 15:22:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 14:52:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 14:22:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 13:52:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 13:22:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 12:52:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 12:22:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 11:52:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 11:22:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 10:52:09 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 10:22:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 09:52:08 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 09:22:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 08:52:10 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 08:22:08 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 07:52:08 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 07:22:08 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 06:52:07 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 06:22:07 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 05:52:07 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 05:22:07 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 04:52:06 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 04:22:07 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 03:52:07 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 03:22:06 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 02:52:07 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 02:22:06 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 01:52:13 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 01:22:13 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 00:52:06 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Thu Jan 23 2020 00:22:06 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Wed Jan 22 2020 23:52:08 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Wed Jan 22 2020 23:22:16 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-* Wed Jan 22 2020 22:55:36 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.123
-- New Git version build: 9.1.1.123
-* Wed Jan 22 2020 22:25:38 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.121
-- New Git version build: 9.1.1.121
-* Wed Jan 22 2020 21:55:54 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.119
-- New Git version build: 9.1.1.119
-* Wed Jan 22 2020 17:25:59 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.117
-- New Git version build: 9.1.1.117
-* Wed Jan 22 2020 16:26:06 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.115
-- New Git version build: 9.1.1.115
-* Wed Jan 22 2020 15:25:46 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.113
-- New Git version build: 9.1.1.113
-* Wed Jan 22 2020 14:55:45 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.111
-- New Git version build: 9.1.1.111
-* Tue Jan 21 2020 21:55:51 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.108
-- New Git version build: 9.1.1.108
-* Tue Jan 21 2020 20:56:00 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.106
-- New Git version build: 9.1.1.106
-* Tue Jan 21 2020 19:26:13 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.104
-- New Git version build: 9.1.1.104
-* Tue Jan 21 2020 18:26:05 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.102
-- New Git version build: 9.1.1.102
-* Tue Jan 21 2020 16:26:01 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.96
-- New Git version build: 9.1.1.96
-* Mon Jan 20 2020 23:55:55 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.94
-- New Git version build: 9.1.1.94
-* Mon Jan 20 2020 19:25:53 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.92
-- New Git version build: 9.1.1.92
-* Mon Jan 20 2020 18:55:56 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.90
-- New Git version build: 9.1.1.90
-* Mon Jan 20 2020 17:25:55 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.88
-- New Git version build: 9.1.1.88
-* Mon Jan 20 2020 14:25:50 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.86
-- New Git version build: 9.1.1.86
-* Fri Jan 17 2020 23:55:35 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.84
-- New Git version build: 9.1.1.84
-* Fri Jan 17 2020 22:55:15 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.79
-- New Git version build: 9.1.1.79
-* Fri Jan 17 2020 21:55:56 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.77
-- New Git version build: 9.1.1.77
-* Fri Jan 17 2020 20:55:32 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.71
-- New Git version build: 9.1.1.71
+* Mon Feb 13 2023 22:55:34 +0000 Martin Juhl <m@rtinjuhl.dk> 21.11.0
+- New version build: 21.11.0
 * Fri Jan 17 2020 19:55:40 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.69
 - New Git version build: 9.1.1.69
 * Fri Jan 17 2020 18:25:41 +0000 Martin Juhl <mj@casalogic.dk> 9.1.1.64

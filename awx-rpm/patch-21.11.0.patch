@@ -1,0 +1,12 @@
+diff -uNr awx/main/credential_plugins/tss.py awx/main/credential_plugins/tss.py
+--- awx/main/credential_plugins/tss.py      2023-01-27 22:50:07.438817422 +0100
++++ awx/main/credential_plugins/tss.py  2023-02-16 00:07:11.362579122 +0100
+@@ -1,7 +1,7 @@
+ from .plugin import CredentialPlugin
+ from django.utils.translation import gettext_lazy as _
+ 
+-from thycotic.secrets.server import PasswordGrantAuthorizer, SecretServer, ServerSecret
++from delinea.secrets.server import PasswordGrantAuthorizer, SecretServer, ServerSecret
+ 
+ tss_inputs = {
+     'fields': [
