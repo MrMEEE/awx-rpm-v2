@@ -20,7 +20,7 @@ https://rpm.awx.wiki/AWX-RPM/
 
 Which should be able to install on RHEL9 (probably also other EL9 like Alma/Rocky/Stream)
 
-The installation for now should be something like (if someone have the time todo a writeup/test, I would appreciate it): (INSTALL.md)
+The installation for now should be something like (if someone have the time todo a writeup/test, I would appreciate it): [INSTALL](INSTALL.md)
 
 I will try to create issues for the stuff that I find which is not working, and then we can hopefully solve it from there..
 
