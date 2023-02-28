@@ -1,3 +1,28 @@
+Update: 28-02-2023
+
+Lets create a community :)
+
+First of all.. AWX-RPM is NOT, and I repeat NOT ready yet.. but I would say that the packaging is close to completed, and now there are some different stuff left:
+
+- Getting all the services running
+
+- Getting the services to talk to eachother
+
+- Documentation
+
+- Testing
+
+- Building/modifying tools (needed for runtimes/installation)
+
+And I could use some help.. I have created a RPM repo (GPG key and repo-file is in the description):
+
+https://rpm.awx.wiki/AWX-RPM/
+
+Which should be able to install on RHEL9 (probably also other EL9 like Alma/Rocky/Stream)
+
+The installation for now should be something like (if someone have the time todo a writeup, I would appreciate it):
+
+----
 AWX-RPM Reignited
 
 Hi guys
