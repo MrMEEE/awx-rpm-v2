@@ -20,7 +20,7 @@ https://rpm.awx.wiki/AWX-RPM/
 
 Which should be able to install on RHEL9 (probably also other EL9 like Alma/Rocky/Stream)
 
-The installation for now should be something like (if someone have the time todo a writeup, I would appreciate it):
+The installation for now should be something like (if someone have the time todo a writeup, I would appreciate it): [INSTALL.md]
 
 ----
 AWX-RPM Reignited
