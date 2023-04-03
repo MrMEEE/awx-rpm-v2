@@ -1,3 +1,32 @@
+Update: 28-02-2023
+
+Lets create a community :)
+
+First of all.. AWX-RPM is NOT, and I repeat NOT ready yet.. but I would say that the packaging is close to completed, and now there are some different stuff left:
+
+- Getting all the services running
+
+- Getting the services to talk to eachother
+
+- Documentation
+
+- Testing
+
+- Building/modifying tools (needed for runtimes/installation)
+
+And I could use some help.. I have created a RPM repo (GPG key and repo-file is in the description):
+
+https://rpm.awx.wiki/AWX-RPM/
+
+Which should be able to install on RHEL9 (probably also other EL9 like Alma/Rocky/Stream)
+
+The installation for now should be something like (if someone have the time todo a writeup/test, I would appreciate it): [INSTALL](INSTALL.md)
+
+I will try to create issues for the stuff that I find which is not working, and then we can hopefully solve it from there..
+
+Happy bug hunting...
+
+----
 AWX-RPM Reignited
 
 Hi guys
@@ -30,7 +59,7 @@ Talk to you all soon..
 -----------------------------------
 
 scripts:
-
+```
 buildsrc: Build src.rpm packages for the generated spec files
 changeversion: Change the AWX version we are working on
 checkbuilds: Check status of builds
@@ -38,3 +67,4 @@ getsources: Get source files for generated spec files
 mockbuild: Build the generated src.rpm-files to rpms with mock
 pypi2spec: Generate specfiles for the requirement files
 single-mockbuild: (re)build a single build, also generating a new src.rpm before build the rpm
+```
