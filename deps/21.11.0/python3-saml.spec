@@ -1,13 +1,13 @@
-Name:           python-prometheus-client
-Version:        0.16.0
+Name:           python3-saml
+Version:        1.15.0
 Release:        1%{?dist}
-Summary:        Python client for the Prometheus monitoring system.
+Summary:        Saml Python Toolkit. Add SAML support to your Python software using this library
 
 # Check if the automatically generated License and its spelling is correct for Fedora
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/LicensingGuidelines/
 License:        gpl
-URL:            https://github.com/prometheus/client_python
-Source:         %{pypi_source prometheus_client}
+URL:            https://github.com/SAML-Toolkits/python3-saml
+Source:         %{pypi_source python3-saml}
 
 BuildArch:      noarch
 BuildRequires:  python3-devel
@@ -15,19 +15,19 @@ BuildRequires:  python3-devel
 
 # Fill in the actual package description to submit package to Fedora
 %global _description %{expand:
-This is package 'prometheus-client' generated automatically by pyp2spec.}
+This is package 'python3-saml' generated automatically by pyp2spec.}
 
 
 %description %_description
 
-%package -n     python3-prometheus-client
+%package -n     python3-python3-saml
 Summary:        %{summary}
 
-%description -n python3-prometheus-client %_description
+%description -n python3-python3-saml %_description
 
 
 %prep
-%autosetup -p1 -n prometheus_client-%{version}
+%autosetup -p1 -n python3-saml-%{version}
 
 
 %generate_buildrequires
@@ -49,9 +49,9 @@ Summary:        %{summary}
 %pyproject_check_import
 
 
-%files -n python3-prometheus-client -f %{pyproject_files}
+%files -n python3-python3-saml -f %{pyproject_files}
 
 
 %changelog
-* Mon Apr 03 2023 Martin Juhl <m@rtinjuhl.dk> - 0.16.0-1
+* Fri Feb 24 2023 Martin Juhl <m@rtinjuhl.dk> - 1.15.0-1
 - Initial package

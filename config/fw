@@ -1,0 +1,3 @@
+firewall-cmd --permanent --add-port=8013/tcp
+firewall-cmd --permanent --add-port=8043/tcp
+firewall-cmd --reload

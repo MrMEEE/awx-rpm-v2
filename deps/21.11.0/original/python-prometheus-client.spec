@@ -1,11 +1,11 @@
 Name:           python-prometheus-client
-Version:        0.15.0
+Version:        0.16.0
 Release:        1%{?dist}
 Summary:        Python client for the Prometheus monitoring system.
 
 # Check if the automatically generated License and its spelling is correct for Fedora
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/LicensingGuidelines/
-License:        ASL
+License:        gpl
 URL:            https://github.com/prometheus/client_python
 Source:         %{pypi_source prometheus_client}
 
@@ -53,5 +53,5 @@ Summary:        %{summary}
 
 
 %changelog
-* Sun Jan 29 2023 Martin Juhl <m@rtinjuhl.dk> - 0.15.0-1
+* Mon Apr 03 2023 Martin Juhl <m@rtinjuhl.dk> - 0.16.0-1
 - Initial package

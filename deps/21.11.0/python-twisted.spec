@@ -33,7 +33,7 @@ Provides: python3dist(twisted[tls]) python3.9dist(twisted[tls])
 
 
 %generate_buildrequires
-%pyproject_buildrequires -x tls
+%pyproject_buildrequires -x tls -x http2
 
 
 %build

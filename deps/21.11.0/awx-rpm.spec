@@ -5,21 +5,22 @@
 
 %define service_user awx
 %define service_group awx
-%define service_homedir /var/lib/awx-rpm
-%define service_logdir /var/log/awx-rpm
-%define service_configdir /etc/awx-rpm
+%define service_homedir /var/lib/tower
+%define service_logdir /var/log/tower
+%define service_configdir /etc/tower
 
 Summary: Ansible AWX
 Name: awx-rpm
 Version: 21.11.0
 Release: 1%{dist}
 Source0: awx-21.11.0.tar.gz
-#Source1: settings.py.dist
-#Source2: awx-cbreceiver.service
-#Source3: awx-dispatcher.service
+Source1: settings.py-%{version}
+Source2: awx-receiver.service-%{version}
+Source3: awx-dispatcher.service-%{version}
+Source4: awx-wsbroadcast.service-%{version}
 #Source5: awx-channels-worker.service
-#Source6: awx-daphne.service
-#Source7: awx-web.service
+Source6: awx-daphne.service-%{version}
+Source7: awx-web.service-%{version}
 #Source8: nginx.conf.example
 #Source9: awx-create-venv
 #Source10: awx-rpm-logo.svg
@@ -32,7 +33,7 @@ Vendor: AWX
 Prefix: %{_prefix}
 AutoReqProv: false
 
-BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build
+BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build rsync
 BuildRequires: python3-adal = 1.2.7
 BuildRequires: python3-aiohttp = 3.8.3
 BuildRequires: python3-aioredis = 1.3.1
@@ -79,6 +80,7 @@ BuildRequires: python3-django-guid = 3.2.1
 BuildRequires: python3-django-oauth-toolkit = 1.4.1
 BuildRequires: python3-django-pglocks = 1.0.4
 BuildRequires: python3-django-polymorphic = 3.1.0
+BuildRequires: python3-django-radius = 1.5.0
 BuildRequires: python3-django-redis = 5.2.0
 BuildRequires: python3-djangorestframework = 3.13.1
 BuildRequires: python3-djangorestframework-yaml = 2.0.0
@@ -86,6 +88,7 @@ BuildRequires: python3-django-rest-swagger = 2.2.0
 BuildRequires: python3-django-solo = 2.0.0
 BuildRequires: python3-django-split-settings = 1.0.0
 BuildRequires: python3-django-taggit = 3.1.0
+BuildRequires: python3-dm-xmlsec-binding = 2.2
 BuildRequires: python3-docutils = 0.19
 BuildRequires: python3-dulwich = 0.20.50
 BuildRequires: python3-ecdsa = 0.18.0
@@ -137,6 +140,7 @@ BuildRequires: python3-pexpect = 4.7.0
 BuildRequires: python3-pip = 21.2.4
 BuildRequires: python3-pkgconfig = 1.5.5
 BuildRequires: python3-platformdirs = 2.6.2
+BuildRequires: python3-priority = 1.3.0
 BuildRequires: python3-prometheus-client = 0.15.0
 BuildRequires: python3-psutil = 5.9.4
 BuildRequires: python3-psycopg2 = 2.9.5
@@ -153,6 +157,7 @@ BuildRequires: python3-pyproject-hooks = 1.0.0
 BuildRequires: python3-pyrad = 2.4
 BuildRequires: python3-pyrsistent = 0.19.2
 BuildRequires: python3-python3-openid = 3.2.0
+BuildRequires: python3-python3-saml = 1.15.0
 BuildRequires: python3-python-daemon = 2.3.2
 BuildRequires: python3-python-dsv-sdk = 1.0.1
 BuildRequires: python3-python-jose = 3.3.0
@@ -204,7 +209,7 @@ BuildRequires: python3-zope-interface = 5.5.2
 BuildRequires: python-ntlm = 1.1.0
 
 
-Requires: python3 nodejs npm gettext
+Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1
 Requires: python3-adal = 1.2.7
 Requires: python3-aiohttp = 3.8.3
 Requires: python3-aioredis = 1.3.1
@@ -251,6 +256,7 @@ Requires: python3-django-guid = 3.2.1
 Requires: python3-django-oauth-toolkit = 1.4.1
 Requires: python3-django-pglocks = 1.0.4
 Requires: python3-django-polymorphic = 3.1.0
+Requires: python3-django-radius = 1.5.0
 Requires: python3-django-redis = 5.2.0
 Requires: python3-djangorestframework = 3.13.1
 Requires: python3-djangorestframework-yaml = 2.0.0
@@ -258,6 +264,7 @@ Requires: python3-django-rest-swagger = 2.2.0
 Requires: python3-django-solo = 2.0.0
 Requires: python3-django-split-settings = 1.0.0
 Requires: python3-django-taggit = 3.1.0
+Requires: python3-dm-xmlsec-binding = 2.2
 Requires: python3-docutils = 0.19
 Requires: python3-dulwich = 0.20.50
 Requires: python3-ecdsa = 0.18.0
@@ -309,6 +316,7 @@ Requires: python3-pexpect = 4.7.0
 Requires: python3-pip = 21.2.4
 Requires: python3-pkgconfig = 1.5.5
 Requires: python3-platformdirs = 2.6.2
+Requires: python3-priority = 1.3.0
 Requires: python3-prometheus-client = 0.15.0
 Requires: python3-psutil = 5.9.4
 Requires: python3-psycopg2 = 2.9.5
@@ -325,6 +333,7 @@ Requires: python3-pyproject-hooks = 1.0.0
 Requires: python3-pyrad = 2.4
 Requires: python3-pyrsistent = 0.19.2
 Requires: python3-python3-openid = 3.2.0
+Requires: python3-python3-saml = 1.15.0
 Requires: python3-python-daemon = 2.3.2
 Requires: python3-python-dsv-sdk = 1.0.1
 Requires: python3-python-jose = 3.3.0
@@ -388,18 +397,25 @@ Requires: python-ntlm = 1.1.0
 %build
 git checkout devel
 git checkout %{version}
-echo 'node-options="--openssl-legacy-provider"' >> awx/ui/.npmrc
-GIT_BRANCH=21.11.0 VERSION=21.11.0 python3 -m build -s
 
 %install
+echo 'node-options="--openssl-legacy-provider"' >> awx/ui/.npmrc
+GIT_BRANCH=%{version} VERSION=%{version} python3 -m build -s
+make ui-release
+mkdir -p /var/log/tower
+python3 manage.py collectstatic --clear --noinput
 mkdir -p %{buildroot}%{_prefix}
+for i in `find -type f |grep mappings.wasm`; do
+	echo "Removing $i"
+	rm -f $i
+done
 cp dist/awx-*.tar.gz %{buildroot}%{_prefix}/
 pushd %{buildroot}%{_prefix}
 tar zxvf awx-*.tar.gz
 rm awx-*.tar.gz
 mv awx-*/* .
 rm -rf awx-*
-pip3 install --root=$RPM_BUILD_ROOT .
+pip3 install --root=%{buildroot}/ .
 popd
 sed -i "s|/builddir.*.x86_64||g" $RPM_BUILD_ROOT/usr/bin/awx-manage
 pushd %{buildroot}/usr/lib/python3.9/site-packages/
@@ -408,29 +424,25 @@ for i in `find -type f`; do
 done
 popd
 
-make ui-release
+rsync -avr awx/ $RPM_BUILD_ROOT/opt/awx-rpm/awx/
+cp -a /var/lib/awx/public/static /opt/awx-rpm/
 
 # Collect django static
 mkdir -p /var/log/tower/
-python3 manage.py collectstatic --clear --noinput
-
 mkdir -p %{buildroot}%{service_homedir}
 mkdir -p %{buildroot}%{service_logdir}
 mkdir -p %{buildroot}%{_prefix}/bin
 mkdir -p %{buildroot}%{service_configdir}
 echo %{version} > %{buildroot}%{service_homedir}/.tower_version
 
+cp %{_sourcedir}/settings.py-%{version} %{buildroot}%{service_configdir}/settings.py
+rsync -avr /var/lib/awx/public %{buildroot}%{_prefix}/public
 
-#cp %{_sourcedir}/settings.py.dist %{buildroot}%{service_configdir}/settings.py
-mv /var/lib/awx/public %{buildroot}%{_prefix}/public
-
-#%if 0%{?el7}
-# Install systemd configuration
-#mkdir -p %{buildroot}%{_unitdir}
-#for service in awx-cbreceiver awx-dispatcher awx-channels-worker awx-daphne awx-web awx; do
-#    cp %{_sourcedir}/${service}.service %{buildroot}%{_unitdir}/
-#done
-#%endif
+mkdir -p %{buildroot}/usr/lib/systemd/system
+# awx-channels-worker awx
+for service in awx-web awx-wsbroadcast awx-daphne awx-dispatcher awx-receiver; do
+    cp %{_sourcedir}/${service}.service-%{version} %{buildroot}/usr/lib/systemd/system/${service}.service
+done
 
 # Create Virtualenv folder
 mkdir -p %{buildroot}%{service_homedir}/venv
@@ -447,6 +459,14 @@ mkdir -p %{buildroot}%{service_homedir}/venv
 #mv $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg.orig
 #ln -s /opt/awx/static/assets/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-header.svg
 #ln -s /opt/awx/static/assets/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg
+mkdir -p $RPM_BUILD_ROOT/etc/nginx/conf.d/
+cp tools/docker-compose/nginx.vh.default.conf $RPM_BUILD_ROOT/etc/nginx/conf.d/awx-rpm.conf
+echo "map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}" >> $RPM_BUILD_ROOT/etc/nginx/conf.d/awx-rpm.conf
+
+sed -i "s|/var/lib/awx/|/opt/awx-rpm/|g" $RPM_BUILD_ROOT/etc/nginx/conf.d/awx-rpm.conf
 
 %pre
 /usr/bin/getent group %{service_group} >/dev/null || /usr/sbin/groupadd --system %{service_group}
@@ -489,13 +509,15 @@ mkdir -p %{buildroot}%{service_homedir}/venv
 %attr(0755, root, root) /usr/bin/awx-manage
 #%attr(0755, root, root) /opt/rh/rh-python36/root/usr/bin/awx-create-venv
 #/usr/bin/awx-create-venv
-%attr(0755, root, root) /usr/lib/python3.9/site-packages/awx
+%attr(0755, root, root) /usr/lib/systemd/system/*.service
+%attr(0755, root, root) /usr/lib/python3.9/site-packages/awx*
 %attr(0755, awx, awx) %{_prefix}
 %dir %attr(0750, %{service_user}, %{service_group}) %{service_homedir}
 %dir %attr(0750, %{service_user}, %{service_group}) %{service_homedir}/venv
 %{service_homedir}/.tower_version
 %dir %attr(0770, %{service_user}, %{service_group}) %{service_logdir}
-#%config %{service_configdir}/settings.py
+%{service_configdir}/settings.py
+/etc/nginx/conf.d/awx-rpm.conf
 #/usr/bin/ansible-tower-service
 #/usr/bin/ansible-tower-setup
 #/usr/bin/awx-python

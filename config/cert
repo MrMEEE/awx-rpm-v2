@@ -1,0 +1,7 @@
+sscg -q                                                             \
+     --cert-file           /etc/pki/tls/certs/localhost.crt         \
+     --cert-key-file       /etc/pki/tls/private/localhost.key       \
+     --ca-file             /etc/pki/tls/certs/localhost.crt         \
+     --lifetime            365                                      \
+     --hostname            $HOSTNAME                                    \
+     --email               root@$HOSTNAME

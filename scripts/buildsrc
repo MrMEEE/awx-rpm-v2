@@ -29,7 +29,11 @@ cd "/opt/awx-rpm-v2/deps/$VERSION"
 
 if [ ! -z ${ARG2+x} ];then
 	echo "Building SRPM for $ARG2 for version $VERSION"
-	rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" python-$2.spec
+	if [ -f $2.spec ];then
+                rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $2.spec
+        else
+		rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" python-$2.spec
+	fi
 	exit 0
 fi
 

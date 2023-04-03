@@ -1,0 +1,3 @@
+semanage port -a -t http_port_t -p tcp 8013
+setsebool -P nis_enabled 1
+setsebool -P httpd_can_network_connect 1

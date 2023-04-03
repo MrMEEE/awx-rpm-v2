@@ -21,5 +21,9 @@ if [[ $PACKAGE == "" ]];then
 		spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $i 
 	done
 else
-	spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" python-$PACKAGE.spec
+	if [ -f $PACKAGE.spec ];then
+		spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $PACKAGE.spec
+	else
+		spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" python-$PACKAGE.spec
+	fi
 fi

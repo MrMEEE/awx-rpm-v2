@@ -4,7 +4,8 @@ VERSION=$(cat /opt/awx-rpm-v2/working-version)
 
 cd /opt/awx-rpm-v2/
 
-cp /opt/awx-rpm-v2/awx-rpm/patch-$VERSION.patch /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/
+cp /opt/awx-rpm-v2/awx-rpm/*$VERSION* /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/
+
 
 #tar zcf /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/awx-$VERSION.tar.gz awx/
 
