@@ -1,0 +1,19 @@
+---
+- node:
+    id: receptor-1
+
+- log-level: info
+
+- tcp-peer:
+    address: localhost:5555
+    redial: true
+
+- work-command:
+    worktype: ansible-runner
+    command: ansible-runner
+    params: worker
+    allowruntimeparams: true
+
+- control-service:
+    service: control
+    filename: /opt/awx-rpm/receptor-worker.sock

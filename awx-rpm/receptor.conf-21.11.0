@@ -1,0 +1,21 @@
+---
+- node:
+    id: awx-test
+
+- log-level: info
+
+- tcp-listener:
+    port: 2222
+
+- control-service:
+    service: control
+    filename: /opt/awx-rpm/receptor.sock
+
+- work-command:
+    worktype: local
+    command: ansible-runner
+    params: worker
+    allowruntimeparams: true
+    verifysignature: false
+
+

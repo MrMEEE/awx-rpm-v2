@@ -1,0 +1,16 @@
+[Unit]
+Description=AWX receptor service
+After=syslog.target network.target
+PartOf=awx.service
+After=awx.service
+
+[Service]
+User=awx
+Group=awx
+Environment=PATH=/opt/awx/bin:/bin:/sbin:/usr/bin:/usr/sbin
+ExecStart=/usr/bin/receptor -c /etc/receptor/receptor.conf
+Restart=on-failure
+RestartSec=2s
+
+[Install]
+WantedBy=awx.service

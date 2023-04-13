@@ -44,3 +44,6 @@ prometheus-client==0.9
 prometheus-client==0.9.0
 prometheus-client==0.8.0
 prometheus-client
+ansible-builder
+requirements-parser
+types-setuptools

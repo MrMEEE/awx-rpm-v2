@@ -1,0 +1,13 @@
+https://www.jazakallah.info/post/rootless-podman-container-and-uid-gid-mapping-in-ansible-automation-platform-2
+
+[awx@awx-test ~]$ cat /etc/subuid
+ansible:100000:65536
+awx:165536:65536
+
+[awx@awx-test ~]$ cat /etc/subgid 
+ansible:100000:65536
+awx:165536:65536
+
+podman system migrate
+
+awx-manage register_default_execution_environments
