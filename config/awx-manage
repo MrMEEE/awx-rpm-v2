@@ -1,3 +1,0 @@
-awx-manage createsuperuser --noinput --username=admin --email=m@rtinjuhl.dk
-awx-manage update_password --username=admin --password=password
-awx-manage register_default_execution_environments

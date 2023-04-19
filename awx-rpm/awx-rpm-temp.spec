@@ -12,7 +12,7 @@
 Summary: Ansible AWX
 Name: awx-rpm
 Version: ¤VERSION¤
-Release: 5%{dist}
+Release: 11%{dist}
 Source0: awx-¤VERSION¤.tar.gz
 Source1: settings.py-%{version}
 Source2: awx-receiver.service-%{version}
@@ -41,7 +41,7 @@ AutoReqProv: false
 BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build rsync
 ¤BUILDREQUIRES¤
 
-Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman
+Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg receptor
 ¤REQUIRES¤
 
 %{?systemd_requires}
@@ -86,6 +86,10 @@ popd
 rsync -avr awx/ $RPM_BUILD_ROOT/opt/awx-rpm/awx/
 cp -a /var/lib/awx/public/static /opt/awx-rpm/
 
+mkdir -p $RPM_BUILD_ROOT/var/lib/awx/rsyslog
+mkdir -p $RPM_BUILD_ROOT/var/lib/awx/projects
+mkdir -p $RPM_BUILD_ROOT/var/lib/awx/job_status
+
 # Collect django static
 mkdir -p /var/log/tower/
 mkdir -p %{buildroot}%{service_homedir}
@@ -95,7 +99,8 @@ mkdir -p %{buildroot}%{service_configdir}
 echo %{version} > %{buildroot}%{service_homedir}/.tower_version
 
 cp %{_sourcedir}/settings.py-%{version} %{buildroot}%{service_configdir}/settings.py
-rsync -avr /var/lib/awx/public %{buildroot}%{_prefix}/public
+mkdir -p %{buildroot}%{_prefix}/public
+rsync -avr /var/lib/awx/public/ %{buildroot}%{_prefix}/public/
 
 mkdir -p %{buildroot}/usr/lib/systemd/system
 # awx-channels-worker awx
@@ -130,10 +135,13 @@ mkdir -p %{buildroot}%{service_homedir}/venv
 #ln -s /opt/awx/static/assets/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg
 mkdir -p $RPM_BUILD_ROOT/etc/nginx/conf.d/
 
+sed -i "s/supervisor_service_command(command='restart', service='awx-rsyslogd')//g" $RPM_BUILD_ROOT/usr/lib/python3.9/site-packages/awx/main/utils/external_logging.py
+
 %pre
 /usr/bin/getent group %{service_group} >/dev/null || /usr/sbin/groupadd --system %{service_group}
 /usr/bin/getent passwd %{service_user} >/dev/null || /usr/sbin/useradd --no-create-home --system -g %{service_group} --home-dir %{service_homedir} -s /bin/bash %{service_user}
 /usr/sbin/usermod -s /bin/bash %{service_user}
+/usr/bin/gpasswd -a awx redis
 
 %post
 if [ ! -f /etc/nginx/nginx.crt ];then
@@ -172,7 +180,9 @@ fi
 #/usr/share/sosreport/sos/plugins/tower.py
 #/var/lib/awx/favicon.ico
 #/var/lib/awx/wsgi.py
-
+/var/lib/awx/rsyslog
+/var/lib/awx/projects
+/var/lib/awx/job_status
 
 %if 0%{?el7}
 %attr(0644, root, root) %{_unitdir}/awx-cbreceiver.service

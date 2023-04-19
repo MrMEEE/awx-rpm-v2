@@ -1,3 +1,2 @@
 unixsocket /var/run/redis/redis.sock
 unixsocketperm 770
-gpasswd -a awx redis

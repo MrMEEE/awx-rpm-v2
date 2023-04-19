@@ -1,7 +1,0 @@
-dnf -y install postgresql-server
-/usr/bin/postgresql-setup --initdb
-systemctl start postgresql
-systemctl enable postgresql
-su postgres -c "createuser -S awx"
-su postgres -c "createdb -O awx awx"
-su awx -c awx-manage migrate

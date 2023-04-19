@@ -12,7 +12,7 @@
 Summary: Ansible AWX
 Name: awx-rpm
 Version: 21.11.0
-Release: 5%{dist}
+Release: 11%{dist}
 Source0: awx-21.11.0.tar.gz
 Source1: settings.py-%{version}
 Source2: awx-receiver.service-%{version}
@@ -217,7 +217,7 @@ BuildRequires: python3-zope-interface = 5.5.2
 BuildRequires: python-ntlm = 1.1.0
 
 
-Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman
+Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg receptor
 Requires: python3-adal = 1.2.7
 Requires: python3-aiohttp = 3.8.3
 Requires: python3-aioredis = 1.3.1
@@ -438,6 +438,10 @@ popd
 rsync -avr awx/ $RPM_BUILD_ROOT/opt/awx-rpm/awx/
 cp -a /var/lib/awx/public/static /opt/awx-rpm/
 
+mkdir -p $RPM_BUILD_ROOT/var/lib/awx/rsyslog
+mkdir -p $RPM_BUILD_ROOT/var/lib/awx/projects
+mkdir -p $RPM_BUILD_ROOT/var/lib/awx/job_status
+
 # Collect django static
 mkdir -p /var/log/tower/
 mkdir -p %{buildroot}%{service_homedir}
@@ -447,7 +451,8 @@ mkdir -p %{buildroot}%{service_configdir}
 echo %{version} > %{buildroot}%{service_homedir}/.tower_version
 
 cp %{_sourcedir}/settings.py-%{version} %{buildroot}%{service_configdir}/settings.py
-rsync -avr /var/lib/awx/public %{buildroot}%{_prefix}/public
+mkdir -p %{buildroot}%{_prefix}/public
+rsync -avr /var/lib/awx/public/ %{buildroot}%{_prefix}/public/
 
 mkdir -p %{buildroot}/usr/lib/systemd/system
 # awx-channels-worker awx
@@ -482,38 +487,22 @@ mkdir -p %{buildroot}%{service_homedir}/venv
 #ln -s /opt/awx/static/assets/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg
 mkdir -p $RPM_BUILD_ROOT/etc/nginx/conf.d/
 
+sed -i "s/supervisor_service_command(command='restart', service='awx-rsyslogd')//g" $RPM_BUILD_ROOT/usr/lib/python3.9/site-packages/awx/main/utils/external_logging.py
+
 %pre
 /usr/bin/getent group %{service_group} >/dev/null || /usr/sbin/groupadd --system %{service_group}
 /usr/bin/getent passwd %{service_user} >/dev/null || /usr/sbin/useradd --no-create-home --system -g %{service_group} --home-dir %{service_homedir} -s /bin/bash %{service_user}
 /usr/sbin/usermod -s /bin/bash %{service_user}
+/usr/bin/gpasswd -a awx redis
 
 %post
-#%if 0%{?el7}
-#%systemd_post awx-cbreceiver
-#%systemd_post awx-dispatcher
-#%systemd_post awx-channels-worker
-#%systemd_post awx-daphne
-#%systemd_post awx-web
-#%endif
-#ln -sfn /opt/rh/rh-python36/root /var/lib/awx/venv/awx
+if [ ! -f /etc/nginx/nginx.crt ];then
+sscg -q --cert-file /etc/nginx/nginx.crt --cert-key-file /etc/nginx/nginx.key --ca-file /etc/nginx/ca.crt --lifetime 3650 --hostname $HOSTNAME --email root@$HOSTNAME
+fi
 
 %preun
-#%if 0%{?el7}
-#%systemd_preun awx-cbreceiver
-#%systemd_preun awx-dispatcher
-#%systemd_preun awx-channels-worker
-#%systemd_preun awx-daphne
-#%systemd_preun awx-web
-#%endif
 
 %postun
-#%if 0%{?el7}
-#%systemd_postun awx-cbreceiver
-#%systemd_postun awx-dispatcher
-#%systemd_postun awx-channels-worker
-#%systemd_postun awx-daphne
-#%systemd_postun awx-web
-#%endif
 
 %clean
 
@@ -543,7 +532,9 @@ mkdir -p $RPM_BUILD_ROOT/etc/nginx/conf.d/
 #/usr/share/sosreport/sos/plugins/tower.py
 #/var/lib/awx/favicon.ico
 #/var/lib/awx/wsgi.py
-
+/var/lib/awx/rsyslog
+/var/lib/awx/projects
+/var/lib/awx/job_status
 
 %if 0%{?el7}
 %attr(0644, root, root) %{_unitdir}/awx-cbreceiver.service

@@ -1,7 +1,0 @@
-sscg -q                                                             \
-     --cert-file           /etc/nginx/nginx.crt         \
-     --cert-key-file       /etc/nginx/nginx.key       \
-     --ca-file             /etc/nginx/ca.crt         \
-     --lifetime            3650                                      \
-     --hostname            $HOSTNAME                                    \
-     --email               root@$HOSTNAME
