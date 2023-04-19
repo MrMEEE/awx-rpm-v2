@@ -12,7 +12,7 @@
 Summary: Ansible AWX
 Name: awx-rpm
 Version: 21.11.0
-Release: 3%{dist}
+Release: 5%{dist}
 Source0: awx-21.11.0.tar.gz
 Source1: settings.py-%{version}
 Source2: awx-receiver.service-%{version}
@@ -26,7 +26,7 @@ Source22: awx-receptor-worker.service-%{version}
 Source30: receptor.conf-%{version}
 Source31: receptor-hop.conf-%{version}
 Source32: receptor-worker.conf-%{version}
-#Source8: nginx.conf.example
+Source8: awx-rpm-nginx.conf-%{version}
 #Source9: awx-create-venv
 #Source10: awx-rpm-logo.svg
 #Source11: awx.service
@@ -461,6 +461,10 @@ for receptor in receptor receptor-hop receptor-worker; do
 	cp %{_sourcedir}/$receptor.conf-%{version} %{buildroot}/etc/receptor/$receptor.conf
 done
 
+mkdir -p %{buildroot}/etc/nginx/conf.d
+
+cp %{_sourcedir}/awx-rpm-nginx.conf-%{version} %{buildroot}/etc/nginx/conf.d/awx-rpm.conf
+
 # Create Virtualenv folder
 mkdir -p %{buildroot}%{service_homedir}/venv
 
@@ -477,13 +481,6 @@ mkdir -p %{buildroot}%{service_homedir}/venv
 #ln -s /opt/awx/static/assets/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-header.svg
 #ln -s /opt/awx/static/assets/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg
 mkdir -p $RPM_BUILD_ROOT/etc/nginx/conf.d/
-cp tools/docker-compose/nginx.vh.default.conf $RPM_BUILD_ROOT/etc/nginx/conf.d/awx-rpm.conf
-echo "map $http_upgrade $connection_upgrade {
-    default upgrade;
-    ''      close;
-}" >> $RPM_BUILD_ROOT/etc/nginx/conf.d/awx-rpm.conf
-
-sed -i "s|/var/lib/awx/|/opt/awx-rpm/|g" $RPM_BUILD_ROOT/etc/nginx/conf.d/awx-rpm.conf
 
 %pre
 /usr/bin/getent group %{service_group} >/dev/null || /usr/sbin/groupadd --system %{service_group}
@@ -534,7 +531,10 @@ sed -i "s|/var/lib/awx/|/opt/awx-rpm/|g" $RPM_BUILD_ROOT/etc/nginx/conf.d/awx-rp
 %{service_homedir}/.tower_version
 %dir %attr(0770, %{service_user}, %{service_group}) %{service_logdir}
 %config %{service_configdir}/settings.py
-/etc/nginx/conf.d/awx-rpm.conf
+%config /etc/nginx/conf.d/awx-rpm.conf
+/etc/receptor/receptor-hop.conf
+/etc/receptor/receptor-worker.conf
+/etc/receptor/receptor.conf
 #/usr/bin/ansible-tower-service
 #/usr/bin/ansible-tower-setup
 #/usr/bin/awx-python

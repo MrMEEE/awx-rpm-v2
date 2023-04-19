@@ -1,7 +1,7 @@
 sscg -q                                                             \
-     --cert-file           /etc/pki/tls/certs/localhost.crt         \
-     --cert-key-file       /etc/pki/tls/private/localhost.key       \
-     --ca-file             /etc/pki/tls/certs/localhost.crt         \
-     --lifetime            365                                      \
+     --cert-file           /etc/nginx/nginx.crt         \
+     --cert-key-file       /etc/nginx/nginx.key       \
+     --ca-file             /etc/nginx/ca.crt         \
+     --lifetime            3650                                      \
      --hostname            $HOSTNAME                                    \
      --email               root@$HOSTNAME
