@@ -1,0 +1,176 @@
+---
+# tasks file for awx-rpm
+- name: Install SELinux python library
+  dnf:
+    name: python3-policycoreutils
+    state: installed
+  become: true
+
+- name: Put SELinux in permissive mode, TOOD, Re-enable
+  ansible.posix.selinux:
+    policy: targeted
+    state: permissive
+  become: true
+
+- name: Allow NGINX to listen on tcp port 8043
+  community.general.seport:
+    ports: 8043
+    proto: tcp
+    setype: http_port_t
+    state: present
+  become: true
+
+- name: Allow NGINX to listen on tcp port 8013
+  community.general.seport:
+    ports: 8013
+    proto: tcp
+    setype: http_port_t
+    state: present
+  become: true
+
+- name: Set httpd_can_network_connect flag on and keep it persistent across reboots
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: true
+    persistent: true
+  become: true
+
+- name: Disable Firewalld, TODO, Re-enable
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+    enabled: false
+
+- name: Set nis_enabled flag on and keep it persistent across reboots
+  ansible.posix.seboolean:
+    name: nis_enabled
+    state: true
+    persistent: true
+  become: true
+
+- name: Add the AWX-RPM repository
+  ansible.builtin.yum_repository:
+    name: awx-rpm-{{ awx_rpm_version }}
+    description: awx-rpm repository
+    baseurl: https://rpm.awx.wiki/AWX-RPM/{{ awx_rpm_version }}/
+    gpgcheck: true
+    gpgkey: https://rpm.awx.wiki/AWX-RPM/RPM-GPG-KEY-awx-rpm
+  become: true
+
+- name: Enable the PYPI RPM repo
+  community.general.copr:
+    host: copr.fedorainfracloud.org
+    state: enabled
+    name: '@copr/PyPI'
+    chroot: epel-9-x86_64
+  become: true
+
+- name: Enable EPEL
+  ansible.builtin.dnf:
+    name: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm'
+    state: present
+    disable_gpg_check: true
+  become: true
+
+- name: Enable a RHSM repository
+  community.general.rhsm_repository:
+    name: codeready-builder-for-rhel-9-x86_64-rpms
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install AWX-RPM
+  ansible.builtin.dnf:
+    name: awx-rpm
+    state: present
+  become: true
+
+- name: Install PostgreSQL
+  ansible.builtin.dnf:
+    name: postgresql-server
+    state: present
+  become: true
+
+- name: Initialize Postgres Database
+  ansible.builtin.command: /usr/bin/postgresql-setup --initdb
+  become: true
+  ignore_errors: true
+
+- name: Start and enable PostgreSQL
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+    enabled: true
+  become: true
+
+- name: Create User and database for AWX-RPM
+  ansible.builtin.command: "{{ item }}"
+  with_items:
+    - createuser -S awx
+    - createdb -O awx awx
+  become: true
+  become_user: postgres
+
+- name: Initialize data in the AWX Database
+  ansible.builtin.command: awx-manage migrate
+  become: true
+  become_user: awx
+
+- name: Fix Podman mapping (1/3)
+  ansible.builtin.copy:
+    dest: /etc/subuid
+    content: |
+      ansible:100000:65536
+      awx:165536:65536
+  become: true
+
+- name: Fix Podman mapping (2/3)
+  ansible.builtin.copy:
+    dest: /etc/subgid
+    content: |
+      ansible:100000:65536
+      awx:165536:65536
+  become: true
+
+- name: Fix Podman mapping (3/3)
+  command: podman system migrate
+  become: true
+  become_user: awx
+
+- name: Initial AWX-RPM Configuration
+  ansible.builtin.command: "{{ item }}"
+  with_items:
+    - awx-manage createsuperuser --noinput --username={{ awx_rpm_user }} --email={{ awx_rpm_email }}
+    - awx-manage update_password --username=admin --password={{ awx_rpm_password }}
+    - awx-manage register_default_execution_environments
+    - awx-manage provision_instance --hostname=$(hostname)
+    - awx-manage register_queue --queuename=tower --hostnames=$(hostname)
+    - awx-manage register_queue --queuename=controlplane --instance_percent=100
+    - awx-manage register_queue --queuename=default --instance_percent=100
+  become: true
+  become_user: awx
+
+- name: Configure Redis Socket
+  ansible.builtin.blockinfile:
+    path: /etc/redis/redis.conf
+    block: |
+      unixsocket /var/run/redis/redis.sock
+      unixsocketperm 770
+  become: true
+
+- name: Start and enable services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+    enabled: true
+  with_items:
+    - redis
+    - nginx
+    - awx-daphne
+    - awx-receiver
+    - awx-receptor
+    - awx-web
+    - awx-dispatcher
+    - awx-receptor-hop
+    - awx-receptor-worker
+    - awx-wsbroadcast
+  become: true

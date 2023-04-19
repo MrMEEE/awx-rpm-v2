@@ -1,0 +1,8 @@
+[all:vars]
+awx_rpm_version=21.11.0
+awx_rpm_user=admin
+awx_rpm_password=password
+awx_rpm_email=root@localhost
+
+[awx-rpm]
+10.0.0.1  ansible_user=root ansible_password=xxxxxxxx
