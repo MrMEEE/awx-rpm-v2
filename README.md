@@ -1,3 +1,9 @@
+Update: 27-04-2023
+
+There are package dependency issues on updating, see issue #3..
+
+To update, run "dnf update --nobest"
+
 Update: 19-04-2023
 
 Well, well, well..
