@@ -1,7 +1,7 @@
 ---
 # tasks file for awx-rpm
 - name: Install SELinux python library
-  dnf:
+  ansible.builtin.dnf:
     name: python3-policycoreutils
     state: installed
   become: true
@@ -91,7 +91,7 @@
   become: true
 
 - name: Initialize Postgres Database
-  ansible.builtin.command: /usr/bin/postgresql-setup --initdb
+  ansible.builtin.shell: /usr/bin/postgresql-setup --initdb
   become: true
   ignore_errors: true
 
@@ -103,7 +103,7 @@
   become: true
 
 - name: Create User and database for AWX-RPM
-  ansible.builtin.command: "{{ item }}"
+  ansible.builtin.shell: "{{ item }}"
   with_items:
     - createuser -S awx
     - createdb -O awx awx
@@ -111,7 +111,7 @@
   become_user: postgres
 
 - name: Initialize data in the AWX Database
-  ansible.builtin.command: awx-manage migrate
+  ansible.builtin.shell: awx-manage migrate
   become: true
   become_user: awx
 
@@ -132,12 +132,12 @@
   become: true
 
 - name: Fix Podman mapping (3/3)
-  command: podman system migrate
+  ansible.builtin.shell: podman system migrate
   become: true
   become_user: awx
 
 - name: Initial AWX-RPM Configuration
-  ansible.builtin.command: "{{ item }}"
+  ansible.builtin.shell: "{{ item }}"
   with_items:
     - awx-manage createsuperuser --noinput --username={{ awx_rpm_user }} --email={{ awx_rpm_email }}
     - awx-manage update_password --username=admin --password={{ awx_rpm_password }}

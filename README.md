@@ -1,3 +1,48 @@
+Update: 27-04-2023
+
+There are package dependency issues on updating, see issue #3..
+
+To update, run "dnf update --nobest"
+
+Update: 19-04-2023
+
+Well, well, well..
+
+
+Something is ready.. not sure I should call it Alpha, Beta or Release Candidate, but I'll let you guys be the judges of that :)
+
+
+But AWX-RPM 21.11.0 is now available for install..
+
+
+The install playbook is available in the repo:
+
+
+https://github.com/MrMEEE/awx-rpm-v2/tree/main/ansible
+
+
+So far I have only tested on RHEL9, but CentOS Stream 9 and other variants should work as well..
+
+
+Setup the AWX-RPM admin user, email and password in the inventory file, along with the hostname/IP of the machine to install to, and run:
+
+
+ansible-playbook -i inventory awx-rpm-install.yml
+
+
+and soon you should have a running AWX-RPM..
+
+
+The webinterface will be available at https://<hostname>:8043/
+
+
+Please report any issues at: https://github.com/MrMEEE/awx-rpm-v2/issues
+
+
+Have fun, and feel free to report any issues and send any pull requests that makes sense..
+
+---
+
 Update: 28-02-2023
 
 Lets create a community :)
