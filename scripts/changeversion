@@ -9,7 +9,11 @@ fi
 
 VERSION=$1
 
-if [ ! -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
+cd /opt/awx-rpm-v2/versions/
+
+if [ `git tag |grep $VERSION` ]; then
+	git checkout $VERSION
+else
 	echo "Version $VERSION hasn't been generated yet"
 	exit 0
 fi
@@ -19,7 +23,7 @@ cd /opt/awx-rpm-v2/awx/
 git checkout -q devel
 git pull -q
 
-if [ `git tag |grep $VERSION$` ]; then
+if [ `git tag |grep $VERSION` ]; then
         git -c advice.detachedHead=false checkout -q $VERSION
 	echo "Version changed to: $VERSION"
 else

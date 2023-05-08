@@ -1,0 +1,13 @@
+#!/bin/bash
+
+source $(dirname "$0")/common-functions
+
+VERSION=$(get_version)
+
+cd /opt/awx-rpm-v2/versions
+
+git add .
+
+git commit -am "Changes to version $VERSION"
+
+git push origin --all

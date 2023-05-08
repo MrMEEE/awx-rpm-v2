@@ -4,11 +4,7 @@ VERSION=$(cat /opt/awx-rpm-v2/working-version)
 
 if [ ! -z $1 ] && [ "$1" != "force" ];then
         VERSION=$1
-fi
-
-if [ ! -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
-        echo "SPECs for version $VERSION not generated"
-        exit 1
+	/opt/awx-rpm-v2/scripts/changeversion $VERSION
 fi
 
 if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS" ]; then

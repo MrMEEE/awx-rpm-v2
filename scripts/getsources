@@ -5,16 +5,17 @@ PACKAGE=$2
 
 if [ ! -z $1 ];then
 	VERSION=$1
+	/opt/awx-rpm-v2/scripts/changeversion $VERSION
 fi
 
-if [ ! -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
+if [ ! -d "/opt/awx-rpm-v2/versions/deps/original" ]; then
 	echo "SPECs for version $VERSION not generated"
 	exit 1
 fi
 
 echo "Fetching sources for version $VERSION"
 
-cd "/opt/awx-rpm-v2/deps/$VERSION"
+cd "/opt/awx-rpm-v2/versions/deps/"
 
 if [[ $PACKAGE == "" ]];then
 	for i in `ls *.spec`;do 

@@ -33,7 +33,9 @@ for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
 	PYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
 	PYTHON3PACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python3/g')
         PYTHON3PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHON3PACKAGE* 2> /dev/null)
-        if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]] || [[ "$PYTHON3PACKAGEPRESENT" != "" ]]; then
+	ALTPACKAGE=$(echo $PACKAGE | sed 's/python3/python/g')
+	ALTPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$ALTPACKAGE* 2> /dev/null)
+        if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]] || [[ "$PYTHON3PACKAGEPRESENT" != "" ]] || [[ "$ALTPACKAGEPRESENT" != "" ]]; then
 		BUILT=$((BUILT+1)) 
 		if [[ "$1" == "all" ]]; then 
 			echo -e "$PACKAGE ${GREEN}Built${NC}"

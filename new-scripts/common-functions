@@ -1,0 +1,8 @@
+#!/bin/bash
+
+get_version () {
+
+	cd /opt/awx-rpm-v2/versions/
+	git rev-parse --abbrev-ref HEAD
+
+}
