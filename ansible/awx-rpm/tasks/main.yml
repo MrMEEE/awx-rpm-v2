@@ -80,7 +80,7 @@
   community.general.rhsm_repository:
     name: codeready-builder-for-rhel-9-x86_64-rpms
   become: true
-  when: ansible_facts['os_family'] == 'RedHat'
+  when: ansible_facts['distribution'] == 'RedHat'
 
 - name: Install AWX-RPM
   ansible.builtin.dnf:
