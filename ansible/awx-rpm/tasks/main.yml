@@ -35,11 +35,15 @@
     persistent: true
   become: true
 
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
 - name: Disable Firewalld, TODO, Re-enable
   ansible.builtin.service:
     name: firewalld
     state: stopped
     enabled: false
+  when: '"firewalld" in ansible_facts.services'
 
 - name: Set nis_enabled flag on and keep it persistent across reboots
   ansible.posix.seboolean:
