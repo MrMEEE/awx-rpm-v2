@@ -167,14 +167,15 @@
     state: restarted
     enabled: true
   with_items:
-    - redis
-    - nginx
-    - awx-daphne
-    - awx-receiver
-    - awx-receptor
-    - awx-web
-    - awx-dispatcher
-    - awx-receptor-hop
-    - awx-receptor-worker
-    - awx-wsbroadcast
+    - redis.service
+    - nginx.service
+    - awx.target
+    - awx-daphne.service
+    - awx-receiver.service
+    - awx-receptor.service
+    - awx-web.service
+    - awx-dispatcher.service
+    - awx-receptor-hop.service
+    - awx-receptor-worker.service
+    - awx-wsbroadcast.service
   become: true
