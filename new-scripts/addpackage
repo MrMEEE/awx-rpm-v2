@@ -1,0 +1,23 @@
+#!/bin/bash
+
+source $(dirname "$0")/common-functions
+
+VERSION=$(get_version)
+
+PACKAGE=$1
+PACKAGEVERSION=$2
+
+if [[ $PACKAGE == "" ]] ;then
+	echo "Please define buildversion and packagename"
+	exit 0
+fi
+
+$(dirname "$0")/pypi2spec $PACKAGE $PACKAGEVERSION
+$(dirname "$0")/getsources $PACKAGE $PACKAGEVERSION
+$(dirname "$0")/buildsrc $PACKAGE $PACKAGEVERSION
+
+if [[ $PACKAGEVERSION == "" ]];then
+	echo "$PACKAGE" >> /opt/awx-rpm-v2/versions/deps/extra-deps.txt
+else
+	echo "$PACKAGE==$PACKAGEVERSION" >> /opt/awx-rpm-v2/versions/deps/extra-deps.txt
+fi

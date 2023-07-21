@@ -4,6 +4,8 @@ source $(dirname "$0")/common-functions
 
 OLDVERSION=$(get_version)
 
+echo "Currently on version $OLDVERSION"
+
 if [ -z "$1" ]; then
         echo "Please provide AWX version"
         exit 1

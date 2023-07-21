@@ -1,0 +1,45 @@
+#!/bin/bash
+
+source $(dirname "$0")/common-functions
+
+VERSION=$(get_version)
+
+ARG1=$1
+ARG2=$2
+
+RPMPACKAGE=$1
+
+if [ ! -d "/opt/awx-rpm-v2/versions/deps" ]; then
+        echo "SPECs for version $VERSION not generated"
+        exit 1
+fi
+
+SRPM=$(echo $RPMPACKAGE | sed 's/python3/python/g' | sed 's/noarch/src/g').src.rpm
+
+if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM" ];then
+	SRPMALT=$(echo $SRPM |sed 's/python/python3/g')
+	if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPMALT" ];then
+		echo "Source file: /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM, doesn't exist.."
+		exit 2
+	else
+		SRPM=$SRPMALT
+	fi
+fi
+
+PACKAGEVERSION=$(echo $SRPM | rev | cut -f2 -d- | rev)
+PACKAGENAME=$(echo $SRPM | rev | cut -f3- -d- | rev | cut -f2- -d-)
+
+/opt/awx-rpm-v2/scripts/buildsrc $VERSION $PACKAGENAME
+
+mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+
+cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+
+mock -r epel-9-x86_64 --clean
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+build_rpm
+
