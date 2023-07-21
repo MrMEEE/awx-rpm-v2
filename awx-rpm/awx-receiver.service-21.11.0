@@ -1,8 +1,6 @@
 [Unit]
 Description=AWX receiver service
-After=syslog.target network.target
-PartOf=awx.service
-After=awx.service
+PartOf=awx.target
 
 [Service]
 User=awx
@@ -15,4 +13,4 @@ Restart=on-failure
 RestartSec=2s
 
 [Install]
-WantedBy=awx.service
+WantedBy=awx.target

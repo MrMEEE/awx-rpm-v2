@@ -1,8 +1,6 @@
 [Unit]
 Description=AWX web service
-After=syslog.target network.target
-PartOf=awx.service
-After=awx.service
+PartOf=awx.target
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/awx
@@ -25,8 +23,10 @@ ExecStart=/usr/bin/uwsgi -b 32768 \
              --lazy-apps \
              --logformat "%(addr) %(method) %(uri) - %(proto) %(status)" \
              --logto=/var/log/tower/web.log
+KillSignal=SIGQUIT
+Type=notify
 Restart=on-failure
 RestartSec=2s
 
 [Install]
-WantedBy=awx.service
+WantedBy=awx.target

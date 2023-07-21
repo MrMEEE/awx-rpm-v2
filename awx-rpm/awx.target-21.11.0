@@ -1,0 +1,12 @@
+[Unit]
+Description=AWX
+After=syslog.target network.target
+After=postgresql.service
+After=nginx.service
+After=redis.service
+Requires=postgresql.service
+Requires=nginx.service
+Requires=redis.service
+
+[Install]
+WantedBy=multi-user.target
