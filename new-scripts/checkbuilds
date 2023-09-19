@@ -36,10 +36,10 @@ for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
         if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]] || [[ "$PYTHON3PACKAGEPRESENT" != "" ]] || [[ "$ALTPACKAGEPRESENT" != "" ]]; then
 		BUILT=$((BUILT+1)) 
 		if [[ "$1" == "all" ]]; then 
-			echo -e "$PACKAGE ${GREEN}Built${NC}"
+			echo -e "$PACKAGE - $i - ${GREEN}Built${NC}"
 		fi 
 	else  
-		echo -e "$PACKAGE ${RED}Missing${NC}"
+		echo -e "$PACKAGE - $i - ${RED}Missing${NC}"
 		MISSING=$((MISSING+1))
 	fi 
 done

@@ -14,12 +14,10 @@ if [ ! -d "/opt/awx-rpm-v2/versions/deps" ]; then
         exit 1
 fi
 
-SRPM=$(echo $RPMPACKAGE | sed 's/python3/python/g' | sed 's/noarch/src/g').src.rpm
-
-if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM" ];then
+if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$RPMPACKAGE" ];then
 	SRPMALT=$(echo $SRPM |sed 's/python/python3/g')
 	if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPMALT" ];then
-		echo "Source file: /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM, doesn't exist.."
+		echo "Source file: /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$RPMPACKAGE, doesn't exist.."
 		exit 2
 	else
 		SRPM=$SRPMALT
@@ -41,5 +39,5 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-build_rpm
+build_rpm $RPMPACKAGE
 

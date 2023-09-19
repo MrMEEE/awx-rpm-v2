@@ -14,7 +14,7 @@ fi
 echo "Creating output folder"
 mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
-cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+#cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
 mock -r epel-9-x86_64 --clean
 
@@ -31,7 +31,7 @@ for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
 	        echo -e "$PACKAGE ${GREEN}Built${NC}"
 	else
 	        echo -e "$PACKAGE ${RED}Missing${NC}... Building.."
-        	build_rpm
+        	build_rpm $i
 	fi
 done
 
