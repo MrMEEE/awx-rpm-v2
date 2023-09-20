@@ -21,7 +21,7 @@ fi
 
 cd "/opt/awx-rpm-v2/versions/deps/"
 
-if [[ ${PACKAGE} != "" ]];then
+if [[ ${PACKAGE} != "" ]] && [[ ${PACKAGE} != "force" ]];then
 	echo "Building SRPM for $PACKAGE for version $VERSION"
 	if [ -f $PACKAGE.spec ];then
                 rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $PACKAGE.spec

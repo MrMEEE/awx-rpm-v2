@@ -17,8 +17,11 @@ else
         exit 1
 fi
 
-rm -rf /opt/awx-rpm-v2/migration/{source,orig,conf,patch}
+rm -rf /opt/awx-rpm-v2/migration
 mkdir -p /opt/awx-rpm-v2/migration/{source,orig,conf,patch}
+cp -ar /opt/awx-rpm-v2/versions/deps/extra-sources /opt/awx-rpm-v2/migration
+mkdir -p /opt/awx-rpm-v2/rpmbuilds/$NEWVERSION/SOURCES/
+cp /opt/awx-rpm-v2/versions/deps/extra-sources/* /opt/awx-rpm-v2/rpmbuilds/$NEWVERSION/SOURCES/
 
 cp -a /opt/awx-rpm-v2/versions/deps/*.spec /opt/awx-rpm-v2/migration/source/
 rm -f /opt/awx-rpm-v2/migration/source/awx*
@@ -42,9 +45,47 @@ done
 
 find /opt/awx-rpm-v2/migration/patch/ -type f -empty -delete
 
-if [[ `git branch |grep $NEWVERSION | wc -l` -gt 0 ]]; then
-	if [[ "$1" != "force" ]]; then
-		echo "no 'force' argument, won't override existing version $NEWVERSION"
-		exit 2
+cp /opt/awx-rpm-v2/versions/deps/{extra-deps.txt,remove-deps.txt,rhel-deps.txt} /opt/awx-rpm-v2/migration/
+
+cd /opt/awx-rpm-v2/versions/
+
+git switch --orphan $NEWVERSION
+
+touch /opt/awx-rpm-v2/versions/VERSION-$NEWVERSION
+
+git add /opt/awx-rpm-v2/versions/VERSION-$NEWVERSION
+
+git commit -qam "Created Version $NEWVERSION"
+
+git push -u origin $NEWVERSION
+
+/opt/awx-rpm-v2/new-scripts/pypi2spec
+for i in `cat /opt/awx-rpm-v2/migration/extra-deps.txt`; do
+
+	PACKAGENAME=$(echo $i | cut -f1 -d=)
+	VERSION=$(echo $i | cut -f3 -d=)
+	
+	echo "Adding package $PACKAGENAME $VERSION"
+	if [[ "$PACKAGENAME" == "$VERSION" ]];then
+		/opt/awx-rpm-v2/new-scripts/addpackage $PACKAGENAME
+	else
+		/opt/awx-rpm-v2/new-scripts/addpackage $PACKAGENAME $VERSION
 	fi
-fi
+
+done
+cp /opt/awx-rpm-v2/migration/remove-deps.txt /opt/awx-rpm-v2/versions/deps/remove-deps.txt
+cp /opt/awx-rpm-v2/migration/rhel-deps.txt /opt/awx-rpm-v2/versions/deps/rhel-deps.txt
+cp -ar /opt/awx-rpm-v2/migration/extra-sources /opt/awx-rpm-v2/versions/deps/
+
+for i in `cat /opt/awx-rpm-v2/migration/remove-deps.txt /opt/awx-rpm-v2/migration/rhel-deps.txt`; do
+	PACKAGENAME=$(echo $i | sed "s/python//g" | sed "s/python3//g")
+	echo "Removing package $PACKAGENAME"
+	rm -f /opt/awx-rpm-v2/versions/deps/*$PACKAGENAME.spec
+	rm -f /opt/awx-rpm-v2/versions/deps/*$PACKAGENAME.conf
+	rm -f /opt/awx-rpm-v2/versions/deps/original/*$PACKAGENAME.spec
+        rm -f /opt/awx-rpm-v2/versions/deps/original/*$PACKAGENAME.conf
+done
+
+/opt/awx-rpm-v2/new-scripts/getsources
+
+

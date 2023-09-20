@@ -1,0 +1,9 @@
+cd /opt/awx-rpm-v2/versions/deps/
+mkdir -p /opt/awx-rpm-v2/migration/applied
+
+for i in `ls /opt/awx-rpm-v2/migration/patch/`; do
+
+	patch -p1 < /opt/awx-rpm-v2/migration/patch/$i
+	mv /opt/awx-rpm-v2/migration/patch/$i /opt/awx-rpm-v2/migration/applied/
+
+done
