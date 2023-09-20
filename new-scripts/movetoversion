@@ -1,0 +1,50 @@
+#!/bin/bash
+
+if [[ "$1" != "force" ]]; then
+        NEWVERSION=$2
+        FROMVERSION=$1
+else
+	NEWVERSION=$3
+	FROMVERSION=$2
+fi
+
+cd /opt/awx-rpm-v2/versions/
+
+if [[ `git branch |grep $FROMVERSION | wc -l` -gt 0 ]]; then
+        git checkout $FROMVERSION
+else
+        echo "Source version $FROMVERSION doesn't exists"
+        exit 1
+fi
+
+rm -rf /opt/awx-rpm-v2/migration/{source,orig,conf,patch}
+mkdir -p /opt/awx-rpm-v2/migration/{source,orig,conf,patch}
+
+cp -a /opt/awx-rpm-v2/versions/deps/*.spec /opt/awx-rpm-v2/migration/source/
+rm -f /opt/awx-rpm-v2/migration/source/awx*
+for i in `ls /opt/awx-rpm-v2/migration/source/`;do
+	if [ -f /opt/awx-rpm-v2/versions/deps/original/$i ];then
+		cp /opt/awx-rpm-v2/versions/deps/original/$i /opt/awx-rpm-v2/migration/orig/
+	else
+		cp /opt/awx-rpm-v2/migration/source/$i /opt/awx-rpm-v2/migration/orig/
+	fi
+done
+cp -a /opt/awx-rpm-v2/versions/deps/*.conf /opt/awx-rpm-v2/migration/conf/
+
+cd /opt/awx-rpm-v2/migration/
+
+for i in `ls /opt/awx-rpm-v2/migration/source/`;do
+
+	NAME=$(echo $i |cut -f1 -d.)
+	diff --ignore-all-space -uNr orig/$i source/$i > /opt/awx-rpm-v2/migration/patch/$NAME.patch
+
+done
+
+find /opt/awx-rpm-v2/migration/patch/ -type f -empty -delete
+
+if [[ `git branch |grep $NEWVERSION | wc -l` -gt 0 ]]; then
+	if [[ "$1" != "force" ]]; then
+		echo "no 'force' argument, won't override existing version $NEWVERSION"
+		exit 2
+	fi
+fi
