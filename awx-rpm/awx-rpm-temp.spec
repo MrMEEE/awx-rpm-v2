@@ -12,7 +12,7 @@
 Summary: Ansible AWX
 Name: awx-rpm
 Version: ¤VERSION¤
-Release: 11%{dist}
+Release: 14%{dist}
 Source0: awx-¤VERSION¤.tar.gz
 Source1: settings.py-%{version}
 Source2: awx-receiver.service-%{version}

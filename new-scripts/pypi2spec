@@ -11,7 +11,8 @@ PACKAGEVERSION=$2
 
 cd /opt/awx-rpm-v2/awx/
 
-git checkout -q devel
+git stash
+git checkout -f -q devel
 git pull -q
 
 if [ `git tag |grep $VERSION` ]; then

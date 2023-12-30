@@ -8,14 +8,31 @@ echo "Currently on version $OLDVERSION"
 
 if [ -z "$1" ]; then
         echo "Please provide AWX version"
+	echo
+	cd /opt/awx-rpm-v2/versions/
+	git branch -rv |cut -f2- -d\/
         exit 1
 fi
 
 VERSION=$1
 
+if [[ "$VERSION" == "save" ]]; then
+	echo "Saving changes to version: $OLDVERSION"
+fi
+
+$(dirname "$0")/checkbuilds all md > /opt/awx-rpm-v2/versions/README.md
+
 cd /opt/awx-rpm-v2/versions/
+git add /opt/awx-rpm-v2/versions/README.md
+git add /opt/awx-rpm-v2/versions/deps
 
 git commit -qam "Changes to Branch $VERSION"
+
+git push
+
+if [[ "$VERSION" == "save" ]]; then
+	exit 0
+fi
 
 if [[ `git branch |grep $VERSION | wc -l` -gt 0 ]]; then
 	git checkout $VERSION

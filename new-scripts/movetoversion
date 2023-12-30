@@ -18,10 +18,16 @@ else
 fi
 
 rm -rf /opt/awx-rpm-v2/migration
-mkdir -p /opt/awx-rpm-v2/migration/{source,orig,conf,patch}
+mkdir -p /opt/awx-rpm-v2/migration/{source,orig,conf,patch,awx-rpm}
 cp -ar /opt/awx-rpm-v2/versions/deps/extra-sources /opt/awx-rpm-v2/migration
 mkdir -p /opt/awx-rpm-v2/rpmbuilds/$NEWVERSION/SOURCES/
 cp /opt/awx-rpm-v2/versions/deps/extra-sources/* /opt/awx-rpm-v2/rpmbuilds/$NEWVERSION/SOURCES/
+if [ -d /opt/awx-rpm-v2/versions/awx-rpm ]; then
+	for i in `ls /opt/awx-rpm-v2/versions/awx-rpm/*-$FROMVERSION | xargs -n 1 basename`;do
+		FILENAME=$(echo $i | sed "s/-$FROMVERSION/-$NEWVERSION/g")
+		cp /opt/awx-rpm-v2/versions/awx-rpm/$i /opt/awx-rpm-v2/migration/awx-rpm/$FILENAME
+	done
+fi
 
 cp -a /opt/awx-rpm-v2/versions/deps/*.spec /opt/awx-rpm-v2/migration/source/
 rm -f /opt/awx-rpm-v2/migration/source/awx*
@@ -76,6 +82,8 @@ done
 cp /opt/awx-rpm-v2/migration/remove-deps.txt /opt/awx-rpm-v2/versions/deps/remove-deps.txt
 cp /opt/awx-rpm-v2/migration/rhel-deps.txt /opt/awx-rpm-v2/versions/deps/rhel-deps.txt
 cp -ar /opt/awx-rpm-v2/migration/extra-sources /opt/awx-rpm-v2/versions/deps/
+mkdir -p /opt/awx-rpm-v2/versions/awx-rpm
+cp /opt/awx-rpm-v2/migration/awx-rpm/* /opt/awx-rpm-v2/versions/awx-rpm/
 
 for i in `cat /opt/awx-rpm-v2/migration/remove-deps.txt /opt/awx-rpm-v2/migration/rhel-deps.txt`; do
 	PACKAGENAME=$(echo $i | sed "s/python//g" | sed "s/python3//g")
@@ -85,6 +93,11 @@ for i in `cat /opt/awx-rpm-v2/migration/remove-deps.txt /opt/awx-rpm-v2/migratio
 	rm -f /opt/awx-rpm-v2/versions/deps/original/*$PACKAGENAME.spec
         rm -f /opt/awx-rpm-v2/versions/deps/original/*$PACKAGENAME.conf
 done
+
+cd /opt/awx-rpm-v2/versions/
+git add /opt/awx-rpm-v2/versions/*
+git commit -qam "Imported from version $FROMVERSION to version $NEWVERSION"
+git push
 
 /opt/awx-rpm-v2/new-scripts/getsources
 
