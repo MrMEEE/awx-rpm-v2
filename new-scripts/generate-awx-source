@@ -10,7 +10,9 @@ cd /opt/awx-rpm-v2/
 
 cp /opt/awx-rpm-v2/versions/awx-rpm/*$VERSION* /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/
 
-tar zcf /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/awx-$VERSION.tar.gz awx/
+if [[ "$1" != "nosource" ]]; then
+	tar zcf /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/awx-$VERSION.tar.gz awx/
+fi
 
 cd /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
 
@@ -23,13 +25,17 @@ for i in `ls python* |grep -v debuginfo |grep -v debugsource | grep -v poetry`; 
 
 done
 
-BUILDVERSION=$(cat /opt/awx-rpm-v2/awx-rpm/awx-rpm-temp.spec |grep Release: | awk '{ print $2}' | cut -f1 -d%)
+BUILDVERSION=$(cat /opt/awx-rpm-v2/versions/deps/awx-rpm.spec |grep Release: | awk '{ print $2}' | cut -f1 -d%)
 
-let "NEWBUILDVERSION=BUILDVERSION+1"
+if [[ "$BUILDVERSION" == "" ]];then
+	BUILDVERSION=1
+else
+	let "NEWBUILDVERSION=BUILDVERSION+1"
+fi
 
-sed -i "s/Release: $BUILDVERSION%{dist}/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/awx-rpm/awx-rpm-temp.spec
+cp /opt/awx-rpm-v2/templates/awx-rpm-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
-cp /opt/awx-rpm-v2/awx-rpm/awx-rpm-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s/Release: $BUILDVERSION%{dist}/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
 sed -i "s|¤BUILDREQUIRES¤|$BUILDDEPS|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 sed -i "s|¤REQUIRES¤|$DEPS|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec

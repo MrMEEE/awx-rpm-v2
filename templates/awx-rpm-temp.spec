@@ -12,7 +12,7 @@
 Summary: Ansible AWX
 Name: awx-rpm
 Version: ¤VERSION¤
-Release: 16%{dist}
+Release: 1%{dist}
 Source0: awx-¤VERSION¤.tar.gz
 Source1: settings.py-%{version}
 Source2: awx-receiver.service-%{version}
@@ -51,11 +51,11 @@ Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 pod
 
 %prep
 %setup -q -n awx
+git checkout -f devel
+git checkout -f %{version}
 %patch0 -p0
 
 %build
-git checkout devel
-git checkout %{version}
 
 %install
 echo 'node-options="--openssl-legacy-provider"' >> awx/ui/.npmrc
