@@ -1,0 +1,9 @@
+FROMVERSION=21.11.0
+NEWVERSION=21.12.0
+
+if [ -d /opt/awx-rpm-v2/awx-rpm ]; then
+        for i in `ls /opt/awx-rpm-v2/awx-rpm/*-$FROMVERSION* | xargs -n 1 basename`;do
+                FILENAME=$(echo $i | sed "s/-$FROMVERSION/-$NEWVERSION/g")
+                cp /opt/awx-rpm-v2/awx-rpm/$i /opt/awx-rpm-v2/versions/awx-rpm/$FILENAME
+        done
+fi

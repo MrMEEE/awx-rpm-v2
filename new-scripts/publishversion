@@ -1,0 +1,28 @@
+#!/bin/bash
+
+source $(dirname "$0")/common-functions
+
+VERSION=$(get_version)
+
+GNUPGHOME=/opt/awx-rpm-v2/gpg/
+
+rm -rf /var/www/html/AWX-RPM/$VERSION/
+
+cp -a /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS /var/www/html/AWX-RPM/$VERSION
+
+for i in `ls /var/www/html/AWX-RPM/$VERSION/*.rpm`;do
+
+	rpm --addsign $i
+
+done
+
+createrepo_c /var/www/html/AWX-RPM/$VERSION/
+
+echo "[awx-rpm-$VERSION]
+name=AWX-RPM $VERSION
+enabled=1
+gpgcheck=1
+baseurl=https://rpm.awx.wiki/AWX-RPM/$VERSION/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-awx-rpm" > /var/www/html/AWX-RPM/awx-rpm-$VERSION.repo
+
+restorecon -r /var/www/html/AWX-RPM/$VERSION
