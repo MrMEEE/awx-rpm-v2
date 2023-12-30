@@ -10,7 +10,7 @@ echo "Generating source and build for receptor version: $PACKAGEVERSION for vers
 
 wget -O /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/receptor-$PACKAGEVERSION.tar.gz https://github.com/ansible/receptor/archive/refs/tags/v$PACKAGEVERSION.tar.gz
 
-cp /opt/awx-rpm-v2/awx-rpm/receptor-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
+cp /opt/awx-rpm-v2/templates/receptor-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
 sed -i "s|¤VERSION¤|$PACKAGEVERSION|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
 
 rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
