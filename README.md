@@ -1,3 +1,14 @@
+Update: 30-12-2023
+
+After a year that has been full of changes, I have now finally been able to get most of the cleanup and rebuild stuff done..
+
+I know it's an old release, but 21.12.0 should now be ready for testing: https://rpm.awx.wiki/AWX-RPM/awx-rpm-21.12.0.repo
+
+My main focus now is to get the newest AWX version released (23.x.x) as soon as possible, and after that to get the build process documented, so that you guys can contribute, if you feel like it..
+
+Happy new year...
+ 
+
 Update: 27-04-2023
 
 There are package dependency issues on updating, see issue #3..
