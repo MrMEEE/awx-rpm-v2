@@ -27,9 +27,9 @@ git add /opt/awx-rpm-v2/versions/README.md
 git add /opt/awx-rpm-v2/versions/deps
 git add /opt/awx-rpm-v2/versions/logs
 
-git commit -qam "Changes to Branch $VERSION"
-
-git push
+echo "Publishing Package build changes"
+git commit -qam "Changes to Branch $VERSION" &> /dev/null 
+git push &> /dev/null
 
 if [[ "$VERSION" == "save" ]]; then
 	exit 0
