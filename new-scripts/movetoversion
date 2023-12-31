@@ -10,11 +10,35 @@ fi
 
 cd /opt/awx-rpm-v2/versions/
 
-if [[ `git branch |grep $FROMVERSION | wc -l` -gt 0 ]]; then
+if [ -z "$FROMVERSION" ]; then
+	echo "Existing version not defined"
+	echo "Select from:"
+	echo
+	cd /opt/awx-rpm-v2/versions/
+        git branch -rv |cut -f2- -d\/
+        exit 1
+fi
+
+if [[ `git branch -rv |cut -f2- -d\/ |grep $FROMVERSION | wc -l` -gt 0 ]]; then
         git checkout $FROMVERSION
 else
         echo "Source version $FROMVERSION doesn't exists"
         exit 1
+fi
+
+if [ -z "$NEWVERSION" ]; then
+        echo "Please provide New AWX version"
+        echo "Select from"
+	echo
+        cd /opt/awx-rpm-v2/awx/
+        git ls-remote --tags origin | cut -f3- -d\/ |grep -v "{}" |sort -Vr
+	#git branch -rv |cut -f2- -d\/
+        exit 1
+fi
+
+if [[ "`cd /opt/awx-rpm-v2/awx/ && git ls-remote --tags origin | cut -f3- -d\/ |grep -v "{}" | grep -x $NEWVERSION |wc -l`" != "1" ]]; then
+	echo "Version: $NEWVERSION doesn't exist"
+	exit 1
 fi
 
 rm -rf /opt/awx-rpm-v2/migration
@@ -65,6 +89,8 @@ git commit -qam "Created Version $NEWVERSION"
 
 git push -u origin $NEWVERSION
 
+/opt/awx-rpm-v2/new-scripts/changeversion $NEWVERSION
+
 /opt/awx-rpm-v2/new-scripts/pypi2spec
 for i in `cat /opt/awx-rpm-v2/migration/extra-deps.txt`; do
 
@@ -101,4 +127,10 @@ git push
 
 /opt/awx-rpm-v2/new-scripts/getsources
 
+echo "Applying patches from version: $FROMVERSION"
 
+/opt/awx-rpm-v2/new-scripts/applypatches
+
+echo "Building sources for version: $NEWVERSION"
+
+/opt/awx-rpm-v2/new-scripts/buildsrc

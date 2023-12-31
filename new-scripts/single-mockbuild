@@ -38,7 +38,7 @@ mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
 cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
-mock -r epel-9-x86_64 --clean
+mock -r epel-9-x86_64 --clean &> /dev/null 
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

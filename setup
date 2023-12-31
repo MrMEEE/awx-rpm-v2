@@ -4,6 +4,6 @@ subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
 dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
 mkdir /opt/awx-rpm-v2 && /opt/awx-rpm-v2
 git clone https://github.com/ansible/awx.git
-dnf install rpmdevtools mock rpm-build
+dnf install rpmdevtools mock rpm-build expect
 dnf install python3-pip
 pip install pyp2spec

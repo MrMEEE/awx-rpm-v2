@@ -16,27 +16,46 @@ mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
 #cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
-mock -r epel-9-x86_64 --clean
+mock -r epel-9-x86_64 --clean > /dev/null 2>&1
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
-        PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
-        PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
-        PYTHONPACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python/g')
-        PYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
-        PYTHON3PACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python3/g')
-        PYTHON3PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHON3PACKAGE* 2> /dev/null)
-        ALTPACKAGE=$(echo $PACKAGE | sed 's/python3/python/g')
-        ALTPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$ALTPACKAGE* 2> /dev/null)
+NEWPACKAGES=0
+REDOBUILD=1
 
-	if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]] || [[ "$PYTHON3PACKAGEPRESENT" != "" ]] || [[ "$ALTPACKAGEPRESENT" != "" ]]; then        
-		echo -e "$PACKAGE ${GREEN}Built${NC}"
+while [[ $REDOBUILD == 1 ]]; do
+
+	for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
+	        PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
+	        PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
+	        PYTHONPACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python/g')
+	        PYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
+	        PYTHON3PACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python3/g')
+	        PYTHON3PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHON3PACKAGE* 2> /dev/null)
+	        ALTPACKAGE=$(echo $PACKAGE | sed 's/python3/python/g')
+	        ALTPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$ALTPACKAGE* 2> /dev/null)
+	
+		if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]] || [[ "$PYTHON3PACKAGEPRESENT" != "" ]] || [[ "$ALTPACKAGEPRESENT" != "" ]]; then        
+			echo -e "$PACKAGE ${GREEN}Built${NC}"
+			NEWPACKAGES=$((NEWPACKAGES=+1))
+		else
+		        echo -e "$PACKAGE ${RED}Missing${NC}... Building.."
+	        	build_rpm $i
+		fi
+	done
+
+	if [[ $NEWPACKAGES -gt 1 ]]; then
+		echo "$NEWPACKAGES has been build in this run, will try the rest again for dependencies"
+		REDOBUILD=1
+		NEWPACKAGES=0
 	else
-	        echo -e "$PACKAGE ${RED}Missing${NC}... Building.."
-        	build_rpm $i
+		echo "No new packages has been build in this run."
+		/opt/awx-rpm-v2/new-scripts/checkbuilds
+		REDOBUILD=0
+		NEWPACKAGES=0
 	fi
+
 done
 

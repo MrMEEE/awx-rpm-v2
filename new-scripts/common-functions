@@ -8,12 +8,21 @@ get_version () {
 }
 
 build_rpm () {
+	VERSION=$(get_version)
 
-	mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/ --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$1 --rpmbuild-opts="--nocheck" --no-cleanup-after
-	rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
-	cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
-	createrepo_c /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
-	rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*
-	mock -r epel-9-x86_64 --clean
+	mkdir -p /opt/awx-rpm-v2/versions/logs/
+	
+	echo "Building Package $1, saving output to /opt/awx-rpm-v2/versions/logs/$1.log"
+	unbuffer mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/ --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$1 --rpmbuild-opts="--nocheck" --no-cleanup-after &> /opt/awx-rpm-v2/versions/logs/$1.log
+	if ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm 1> /dev/null 2>&1; then
+		echo "Build succeeded."
+		rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
+		cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+	else
+		echo "Build failed, check logs to correct."
+	fi
+	createrepo_c /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/ >> /opt/awx-rpm-v2/versions/logs/$1.log 2>&1
+	rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/* >> /opt/awx-rpm-v2/versions/logs/$1.log 2>&1
+	mock -r epel-9-x86_64 --clean >> /opt/awx-rpm-v2/versions/logs/$1.log 2>&1
 
 }
