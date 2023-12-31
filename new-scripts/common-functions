@@ -24,5 +24,5 @@ build_rpm () {
 	createrepo_c /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/ >> /opt/awx-rpm-v2/versions/logs/$1.log 2>&1
 	rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/* >> /opt/awx-rpm-v2/versions/logs/$1.log 2>&1
 	mock -r epel-9-x86_64 --clean >> /opt/awx-rpm-v2/versions/logs/$1.log 2>&1
-
+	/opt/awx-rpm-v2/new-scripts/changeversion save
 }

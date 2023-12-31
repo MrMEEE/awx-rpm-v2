@@ -1,3 +1,14 @@
+Update: 31-12-2023
+
+If anyone is interested in following the process of building version 23.5.1:
+
+https://github.com/MrMEEE/awx-rpm-versions/tree/23.5.1
+
+Here you can also try to help troubleshooting the individual package problems, and pull requests will be highly appreciated..
+
+Happy New Year... one more time..
+ 
+
 Update: 30-12-2023
 
 After a year that has been full of changes, I have now finally been able to get most of the cleanup and rebuild stuff done..

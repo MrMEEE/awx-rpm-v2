@@ -41,14 +41,22 @@ for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
 		BUILT=$((BUILT+1)) 
 		if [[ "$1" == "all" ]]; then
 			if [[ "$FORMAT" == "md" ]]; then
-				echo "* $PACKAGE - $i - Built"
+				if [ -f /opt/awx-rpm-v2/versions/logs/$i.log ]; then
+					echo "* $PACKAGE - $i - Built [Log file](logs/$i.log)"
+				else
+					echo "* $PACKAGE - $i - Built"
+				fi
 			else 
 				echo -e "$PACKAGE - $i - ${GREEN}Built${NC}"
 			fi
 		fi 
 	else  
 		if [[ "$FORMAT" == "md" ]]; then
-			echo "* $PACKAGE - $i - Missing"
+			if [ -f /opt/awx-rpm-v2/versions/logs/$i.log ]; then
+				echo "* $PACKAGE - $i - **Missing** [Log file](logs/$i.log)"
+			else
+				echo "* $PACKAGE - $i - **Missing**"
+			fi
 		else
 			echo -e "$PACKAGE - $i - ${RED}Missing${NC}"
 		fi
