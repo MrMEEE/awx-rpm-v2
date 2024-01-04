@@ -28,14 +28,14 @@ done
 BUILDVERSION=$(cat /opt/awx-rpm-v2/versions/deps/awx-rpm.spec |grep Release: | awk '{ print $2}' | cut -f1 -d%)
 
 if [[ "$BUILDVERSION" == "" ]];then
-	BUILDVERSION=1
+	NEWBUILDVERSION=1
 else
 	let "NEWBUILDVERSION=BUILDVERSION+1"
 fi
 
 cp /opt/awx-rpm-v2/templates/awx-rpm-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
-sed -i "s/Release: $BUILDVERSION%{dist}/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s/Release:.*$/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
 sed -i "s|¤BUILDREQUIRES¤|$BUILDDEPS|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 sed -i "s|¤REQUIRES¤|$DEPS|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
