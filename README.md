@@ -1,3 +1,20 @@
+Update: 05-01-24
+
+Well, well, well.. 23.5.1 went pretty smoothly with the new building stuff..
+
+
+* Don't ask why the version is 23.5.2-*******
+
+* The installer fails on the common awx.target systemd service (because I forgot to include it), but the rest works...
+
+* I haven't tested updates (or pretty much anything else)..
+
+* IT RUNS!!! :)
+
+
+Test it, break it and report it :D.. 
+
+
 Update: 31-12-2023
 
 If anyone is interested in following the process of building version 23.5.1:
