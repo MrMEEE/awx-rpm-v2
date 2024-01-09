@@ -85,7 +85,7 @@
 - name: Install AWX-RPM
   ansible.builtin.dnf:
     name: awx-rpm
-    state: present
+    state: latest
   become: true
 
 - name: Install PostgreSQL
