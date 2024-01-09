@@ -24,4 +24,32 @@ and get ready to wait..
 
 Mockbuild will keep interating over all unbuild packages, as long as it gets some packages built.. (due to dependencies between packages)
 
+When all dependencies have been build, go to: https://github.com/ansible/receptor and look for the newest release number (as of writing, 1.4.3)
+
+Then run:
+
+/opt/awx-rpm-v2/new-scripts/generate-and-build-receptor-source {recepter version}
+
+eg.
+
+/opt/awx-rpm-v2/new-scripts/generate-and-build-receptor-source 1.4.3
+
+This will fetch source code and build receptor..
+
+When built succesful, run
+
+/opt/awx-rpm-v2/new-scripts/generate-awx-source
+
+This will generate the source and SRPM for awx-rpm..
+
+to regenerate the SRPM, without generating the source, run:
+
+/opt/awx-rpm-v2/new-scripts/generate-awx-source nosource
+
+Every run of "generate-awx-source", will increment the build number..
+
+to build the RPM:
+
+/opt/awx-rpm-v2/new-scripts/single-mockbuild awx-rpm-23.6.0-2.el9.src.rpm
+
 

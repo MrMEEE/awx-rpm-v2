@@ -27,11 +27,9 @@ Source23: awx.target-%{version}
 Source30: receptor.conf-%{version}
 Source31: receptor-hop.conf-%{version}
 Source32: receptor-worker.conf-%{version}
+Source40: awx-rpm-logo.svg-%{version}
 Source8: awx-rpm-nginx.conf-%{version}
-#Source9: awx-create-venv
-#Source10: awx-rpm-logo.svg
-#Source11: awx.service
-Patch0: patch-%{version}.patch
+Patch0: awx-patch.patch-%{version}
 License: GPLv3
 Group: AWX
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}.buildroot
@@ -39,10 +37,10 @@ Vendor: AWX
 Prefix: %{_prefix}
 AutoReqProv: false
 
-BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build rsync libpq libpq-devel python3-dateutil python3-PyYAML python3-ldap
+BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build rsync libpq libpq-devel python3-dateutil python3-PyYAML python3-ldap ansible-core
 ¤BUILDREQUIRES¤
 
-Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg receptor libpq python3-dateutil python3-PyYAML python3-ldap
+Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg receptor libpq python3-dateutil python3-PyYAML python3-ldap ansible-core
 ¤REQUIRES¤
 
 %{?systemd_requires}
@@ -62,6 +60,11 @@ git checkout -f %{version}
 echo 'node-options="--openssl-legacy-provider"' >> awx/ui/.npmrc
 GIT_BRANCH=%{version} VERSION=%{version} python3 -m build -s
 make ui-release
+make clean/ui-next 
+cp %{_sourcedir}/awx-rpm-logo.svg-%{version} awx/ui_next/frontend/awx/awx-rpm-logo.svg
+sed -i "s/awx-logo.svg/awx-rpm-logo.svg/g" awx/ui_next/frontend/awx/AwxMasthead.tsx
+make ui-next
+
 mkdir -p /var/log/tower
 #python3 manage.py collectstatic --clear --noinput
 AWX_SETTINGS_FILE=awx/settings/production.py SKIP_SECRET_KEY_CHECK=yes SKIP_PG_VERSION_CHECK=yes python3 manage.py collectstatic --noinput --clear
@@ -132,11 +135,6 @@ mkdir -p %{buildroot}%{service_homedir}/venv
 #cp %{_sourcedir}/awx-create-venv $RPM_BUILD_ROOT/opt/rh/rh-python36/root/usr/bin/
 #mkdir -p $RPM_BUILD_ROOT/usr/bin/
 
-#cp %{_sourcedir}/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/awx-rpm-logo.svg
-#mv $RPM_BUILD_ROOT/opt/awx/static/assets/logo-header.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-header.svg.orig
-#mv $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg.orig
-#ln -s /opt/awx/static/assets/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-header.svg
-#ln -s /opt/awx/static/assets/awx-rpm-logo.svg $RPM_BUILD_ROOT/opt/awx/static/assets/logo-login.svg
 mkdir -p $RPM_BUILD_ROOT/etc/nginx/conf.d/
 
 sed -i "s/supervisor_service_command(command='restart', service='awx-rsyslogd')//g" $RPM_BUILD_ROOT/usr/lib/python3.9/site-packages/awx/main/utils/external_logging.py
@@ -173,6 +171,7 @@ fi
 %dir %attr(0770, %{service_user}, %{service_group}) %{service_logdir}
 %config %{service_configdir}/settings.py
 %config /etc/nginx/conf.d/awx-rpm.conf
+/usr/lib/systemd/system/awx.target
 /etc/receptor/receptor-hop.conf
 /etc/receptor/receptor-worker.conf
 /etc/receptor/receptor.conf

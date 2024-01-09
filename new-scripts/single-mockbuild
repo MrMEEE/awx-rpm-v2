@@ -30,7 +30,7 @@ if [[ "$2" != mockonly ]]; then
 	PACKAGENAME=$(echo $SRPM | rev | cut -f3- -d- | rev | cut -f2- -d-)
 
 
-	/opt/awx-rpm-v2/scripts/buildsrc $VERSION $PACKAGENAME
+	/opt/awx-rpm-v2/scripts/buildsrc $PACKAGENAME
 
 fi
 
