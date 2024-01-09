@@ -1,3 +1,15 @@
+Update: 10-01-2023
+
+Release of 23.6.0
+
+* Updating should now be as simple as changing the version in the ansible playbook, and rerunning the playbook (please report any issues)
+* I only spent about 2 hours to get from 23.5.1 -> 23.6.0, so the building seems to be A LOT more stable and easy now..
+* Only one package had to be fixed manually, aside from dependency fixing with the main AWX-RPM package (and a new package from the AWX team, django-ansible-base)
+* I expect to be able to keep pretty close to the release of the AWX team from now on
+
+Please start to break it :) 
+___
+
 Update: 09-01-2023
 
 Build process of 23.6.0:
