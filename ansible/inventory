@@ -1,5 +1,5 @@
 [all:vars]
-awx_rpm_version=23.5.1
+awx_rpm_version=23.6.0
 awx_rpm_user=admin
 awx_rpm_password=password
 awx_rpm_email=root@localhost
