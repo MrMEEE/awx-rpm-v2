@@ -8,6 +8,24 @@ Documentation is also getting started..
 
 I have removed quite a few bugs from the ansible installer, as well as the packages and NGINX configuration..
 
+---
+
+Update: 05-01-24
+
+Well, well, well.. 23.5.1 went pretty smoothly with the new building stuff..
+
+* Don't ask why the version is 23.5.2-*******
+
+* The installer fails on the common awx.target systemd service (because I forgot to include it), but the rest works...
+
+* I haven't tested updates (or pretty much anything else)..
+
+* IT RUNS!!! :)
+
+Test it, break it and report it :D.. 
+
+---
+
 Update: 31-12-2023
 
 If anyone is interested in following the process of building version 23.5.1:
@@ -17,7 +35,8 @@ https://github.com/MrMEEE/awx-rpm-versions/tree/23.5.1
 Here you can also try to help troubleshooting the individual package problems, and pull requests will be highly appreciated..
 
 Happy New Year... one more time..
- 
+
+---
 
 Update: 30-12-2023
 
@@ -28,13 +47,16 @@ I know it's an old release, but 21.12.0 should now be ready for testing: https:/
 My main focus now is to get the newest AWX version released (23.x.x) as soon as possible, and after that to get the build process documented, so that you guys can contribute, if you feel like it..
 
 Happy new year...
- 
+
+---
 
 Update: 27-04-2023
 
 There are package dependency issues on updating, see issue #3..
 
 To update, run "dnf update --nobest"
+
+---
 
 Update: 19-04-2023
 

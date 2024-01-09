@@ -99,6 +99,13 @@
   become: true
   ignore_errors: true
 
+- name: Install postgres configuration
+  ansible.builtin.copy:
+    src: files/pg_hba.conf
+    dest: /var/lib/pgsql/data/pg_hba.conf
+    mode: '0644'
+  become: true
+
 - name: Start and enable PostgreSQL
   ansible.builtin.service:
     name: postgresql
@@ -111,8 +118,19 @@
   with_items:
     - createuser -S awx
     - createdb -O awx awx
+    - psql -c "ALTER USER awx WITH PASSWORD '{{ awx_rpm_dbpass }}'";
   become: true
   become_user: postgres
+  ignore_errors: true
+
+- name: Install AWX-RPM Settings
+  ansible.builtin.template:
+    src: templates/settings.py.tpl
+    dest: /etc/tower/settings.py
+    mode: '0640'
+    owner: awx
+    group: awx
+  become: true
 
 - name: Initialize data in the AWX Database
   ansible.builtin.shell: awx-manage migrate
@@ -152,6 +170,7 @@
     - awx-manage register_queue --queuename=default --instance_percent=100
   become: true
   become_user: awx
+  ignore_errors: true
 
 - name: Configure Redis Socket
   ansible.builtin.blockinfile:
