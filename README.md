@@ -1,3 +1,13 @@
+Update: 09-01-2023
+
+Build process of 23.6.0:
+
+https://github.com/MrMEEE/awx-rpm-versions/tree/23.6.0
+
+Documentation is also getting started..
+
+I have removed quite a few bugs from the ansible installer, as well as the packages and NGINX configuration..
+
 Update: 31-12-2023
 
 If anyone is interested in following the process of building version 23.5.1:

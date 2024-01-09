@@ -1,0 +1,27 @@
+* Generate New AWX-RPM version from a former version
+
+Run the movetoversion script: /opt/awx-rpm-v2/new-scripts/movetoversion <existing version> <new version>
+
+This will take the changes from the old version and try to apply it to the new..
+
+Look for patches that couldn't be applied:
+
+ls -la /opt/awx-rpm-v2/versions/deps/*.rej
+
+and fix them manually..
+
+Then run:
+
+/opt/awx-rpm-v2/new-scripts/buildsrc force
+
+to make sure that all SRPMs have been built
+
+now run
+
+/opt/awx-rpm-v2/new-scripts/mockbuild
+
+and get ready to wait.. 
+
+Mockbuild will keep interating over all unbuild packages, as long as it gets some packages built.. (due to dependencies between packages)
+
+

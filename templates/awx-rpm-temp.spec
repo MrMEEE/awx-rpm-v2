@@ -23,6 +23,7 @@ Source7: awx-web.service-%{version}
 Source20: awx-receptor.service-%{version}
 Source21: awx-receptor-hop.service-%{version}
 Source22: awx-receptor-worker.service-%{version}
+Source23: awx.target-%{version}
 Source30: receptor.conf-%{version}
 Source31: receptor-hop.conf-%{version}
 Source32: receptor-worker.conf-%{version}
@@ -38,10 +39,10 @@ Vendor: AWX
 Prefix: %{_prefix}
 AutoReqProv: false
 
-BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build rsync libpq libpq-devel python3-dateutil python3-PyYAML
+BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build rsync libpq libpq-devel python3-dateutil python3-PyYAML python3-ldap
 ¤BUILDREQUIRES¤
 
-Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg receptor libpq python3-dateutil python3-PyYAML
+Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg receptor libpq python3-dateutil python3-PyYAML python3-ldap
 ¤REQUIRES¤
 
 %{?systemd_requires}
@@ -108,6 +109,8 @@ mkdir -p %{buildroot}/usr/lib/systemd/system
 for service in awx-web awx-wsbroadcast awx-daphne awx-dispatcher awx-receiver awx-receptor awx-receptor-hop awx-receptor-worker; do
     cp %{_sourcedir}/${service}.service-%{version} %{buildroot}/usr/lib/systemd/system/${service}.service
 done
+
+cp %{_sourcedir}/awx.target-%{version} %{buildroot}/usr/lib/systemd/system/awx.target
 
 mkdir -p %{buildroot}/etc/receptor
 

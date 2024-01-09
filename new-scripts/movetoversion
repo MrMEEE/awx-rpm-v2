@@ -131,6 +131,3 @@ echo "Applying patches from version: $FROMVERSION"
 
 /opt/awx-rpm-v2/new-scripts/applypatches
 
-echo "Building sources for version: $NEWVERSION"
-
-/opt/awx-rpm-v2/new-scripts/buildsrc
