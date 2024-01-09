@@ -18,6 +18,7 @@ build_rpm () {
 		echo "Build succeeded."
 		rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
 		cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+		NEWPACKAGES=$((NEWPACKAGES+1))
 	else
 		echo "Build failed, check logs to correct."
 	fi

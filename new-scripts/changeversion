@@ -26,6 +26,7 @@ cd /opt/awx-rpm-v2/versions/
 git add /opt/awx-rpm-v2/versions/README.md
 git add /opt/awx-rpm-v2/versions/deps
 git add /opt/awx-rpm-v2/versions/logs
+git add /opt/awx-rpm-v2/versions/awx-rpm
 
 echo "Publishing Package build changes"
 git commit -qam "Changes to Branch $VERSION" &> /dev/null 
