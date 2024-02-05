@@ -37,10 +37,10 @@ Vendor: AWX
 Prefix: %{_prefix}
 AutoReqProv: false
 
-BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build rsync libpq libpq-devel python3-dateutil python3-PyYAML python3-ldap ansible-core
+BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build rsync libpq libpq-devel python3-dateutil python3-PyYAML python3-ldap
 ¤BUILDREQUIRES¤
 
-Requires: python3 nodejs npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg receptor libpq python3-dateutil python3-PyYAML python3-ldap ansible-core
+Requires: python3 nodejs >= 18 npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg receptor libpq python3-dateutil python3-PyYAML python3-ldap
 ¤REQUIRES¤
 
 %{?systemd_requires}

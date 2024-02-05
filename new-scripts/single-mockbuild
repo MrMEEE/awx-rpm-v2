@@ -24,16 +24,6 @@ if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$RPMPACKAGE" ];then
 	fi
 fi
 
-if [[ "$2" != mockonly ]]; then
-
-	PACKAGEVERSION=$(echo $SRPM | rev | cut -f2 -d- | rev)
-	PACKAGENAME=$(echo $SRPM | rev | cut -f3- -d- | rev | cut -f2- -d-)
-
-
-	/opt/awx-rpm-v2/scripts/buildsrc $PACKAGENAME
-
-fi
-
 mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
 cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"

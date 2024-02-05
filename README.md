@@ -1,4 +1,8 @@
-Update: 10-01-2023
+Update: 05-02-2024
+
+* Release of version 23.7.0
+
+Update: 10-01-2024
 
 Release of 23.6.0
 
@@ -10,7 +14,7 @@ Release of 23.6.0
 Please start to break it :) 
 ___
 
-Update: 09-01-2023
+Update: 09-01-2024
 
 Build process of 23.6.0:
 
