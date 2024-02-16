@@ -29,7 +29,7 @@ git add /opt/awx-rpm-v2/versions/logs
 git add /opt/awx-rpm-v2/versions/awx-rpm
 
 echo "Publishing Package build changes"
-git commit -qam "Changes to Branch $VERSION" &> /dev/null 
+git commit -qam "Publishing build changes for version: `cat /opt/awx-rpm-v2/working-version`" &> /dev/null 
 git push &> /dev/null
 
 if [[ "$VERSION" == "save" ]]; then
