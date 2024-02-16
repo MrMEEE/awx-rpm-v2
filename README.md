@@ -1,3 +1,16 @@
+Update: 16-02-2024
+
+* AWX-RPM 23.8.1 is out..
+
+Updating should be as simple as:
+
+- Changing the version in /etc/yum.repos.d/awx-rpm.repo to 23.8.1
+- Running "dnf update awx-rpm"
+- Running "awx-manage migrate"
+- Running "systemctl restart awx-*"
+
+Have fun
+
 Update: 05-02-2024
 
 * Release of version 23.7.0

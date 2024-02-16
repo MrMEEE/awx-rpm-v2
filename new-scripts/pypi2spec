@@ -22,19 +22,6 @@ else
 	exit 1
 fi
 
-if [ -d "/opt/awx-rpm-v2/versions/deps" ]; then
-	if [[ $PACKAGE == "force" ]] ; then
-		echo "Removing packages"
-		rm -rf "/opt/awx-rpm-v2/versions/deps"
-		exit 0
-	elif [[ $PACKAGE == "" ]]; then
-		echo "Version is already created, force to overwrite"
-		exit 1
-	else
-		echo "Adding package $PACKAGE $VERSION"
-	fi
-fi
-
 mkdir -p /opt/awx-rpm-v2/versions/deps
 
 cat /opt/awx-rpm-v2/awx/requirements/requirements.txt | grep -v "#" > /opt/awx-rpm-v2/versions/deps/requirements.txt

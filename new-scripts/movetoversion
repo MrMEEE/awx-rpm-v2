@@ -99,12 +99,13 @@ for i in `cat /opt/awx-rpm-v2/migration/extra-deps.txt`; do
 	
 	echo "Adding package $PACKAGENAME $VERSION"
 	if [[ "$PACKAGENAME" == "$VERSION" ]];then
-		/opt/awx-rpm-v2/new-scripts/addpackage $PACKAGENAME
-	else
-		/opt/awx-rpm-v2/new-scripts/addpackage $PACKAGENAME $VERSION
+		/opt/awx-rpm-v2/new-scripts/addpackage $PACKAGENAME nobuild
+	else 
+		/opt/awx-rpm-v2/new-scripts/addpackage $PACKAGENAME $VERSION nobuild
 	fi
 
 done
+
 cp /opt/awx-rpm-v2/migration/remove-deps.txt /opt/awx-rpm-v2/versions/deps/remove-deps.txt
 cp /opt/awx-rpm-v2/migration/rhel-deps.txt /opt/awx-rpm-v2/versions/deps/rhel-deps.txt
 cp -ar /opt/awx-rpm-v2/migration/extra-sources /opt/awx-rpm-v2/versions/deps/

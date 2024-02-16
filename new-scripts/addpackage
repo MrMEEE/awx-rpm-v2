@@ -5,7 +5,17 @@ source $(dirname "$0")/common-functions
 VERSION=$(get_version)
 
 PACKAGE=$1
-PACKAGEVERSION=$2
+if [[ "$2" == "nobuild" ]]; then
+	PACKAGEVERSION=""
+else
+	PACKAGEVERSION=$2
+fi
+
+if [[ "$3" == "nobuild" ]] || [[ "$2" == "nobuild" ]]; then
+	BUILDSRC=0
+else
+	BUILDSRC=1
+fi
 
 if [[ $PACKAGE == "" ]] ;then
 	echo "Please define buildversion and packagename"
@@ -14,7 +24,9 @@ fi
 
 $(dirname "$0")/pypi2spec $PACKAGE $PACKAGEVERSION
 $(dirname "$0")/getsources $PACKAGE $PACKAGEVERSION
-$(dirname "$0")/buildsrc $PACKAGE $PACKAGEVERSION
+if [[ "$BUILDSRC" == "1" ]];then
+	$(dirname "$0")/buildsrc $PACKAGE $PACKAGEVERSION
+fi
 
 if [[ $PACKAGEVERSION == "" ]];then
 	echo "$PACKAGE" >> /opt/awx-rpm-v2/versions/deps/extra-deps.txt
