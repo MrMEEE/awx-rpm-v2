@@ -176,6 +176,7 @@ fi
 /etc/receptor/receptor-hop.conf
 /etc/receptor/receptor-worker.conf
 /etc/receptor/receptor.conf
+/etc/receptor
 #/usr/bin/ansible-tower-service
 #/usr/bin/ansible-tower-setup
 #/usr/bin/awx-python
