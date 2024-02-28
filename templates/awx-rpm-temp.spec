@@ -17,7 +17,8 @@ Source0: awx-¤VERSION¤.tar.gz
 Source1: settings.py-%{version}
 Source2: awx-receiver.service-%{version}
 Source3: awx-dispatcher.service-%{version}
-Source4: awx-wsbroadcast.service-%{version}
+Source4: awx-wsrelay.service-%{version}
+Source5: awx-ws-heartbeat.service-%{version}
 Source6: awx-daphne.service-%{version}
 Source7: awx-web.service-%{version}
 Source20: awx-receptor.service-%{version}
@@ -109,7 +110,7 @@ rsync -avr /var/lib/awx/public/ %{buildroot}%{_prefix}/public/
 
 mkdir -p %{buildroot}/usr/lib/systemd/system
 # awx-channels-worker awx
-for service in awx-web awx-wsbroadcast awx-daphne awx-dispatcher awx-receiver awx-receptor awx-receptor-hop awx-receptor-worker; do
+for service in awx-web awx-wsrelay awx-ws-heartbeat awx-daphne awx-dispatcher awx-receiver awx-receptor awx-receptor-hop awx-receptor-worker; do
     cp %{_sourcedir}/${service}.service-%{version} %{buildroot}/usr/lib/systemd/system/${service}.service
 done
 

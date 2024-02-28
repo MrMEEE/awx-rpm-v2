@@ -214,5 +214,6 @@
     - awx-dispatcher.service
     - awx-receptor-hop.service
     - awx-receptor-worker.service
-    - awx-wsbroadcast.service
+    - awx-wsrelay.service
+    - awx-ws-heartbeat.service
   become: true
