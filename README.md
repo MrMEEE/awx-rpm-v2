@@ -1,4 +1,4 @@
-===== AWX-RPM =====
+# AWX-RPM
 
 RPM builds of the AWX project (https://www.github.com/ansible/awx)
 
