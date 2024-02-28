@@ -18,7 +18,7 @@
     proto: tcp
     setype: http_port_t
     state: present
-  become: true
+  become: true 
 
 - name: Allow NGINX to listen on tcp port 8013
   community.general.seport:
@@ -80,7 +80,7 @@
   community.general.rhsm_repository:
     name: codeready-builder-for-rhel-9-x86_64-rpms
   become: true
-  when: ansible_facts['distribution'] == 'RedHat'
+  when: ansible_facts['distribution'] == 'RedHat' 
 
 - name: Install AWX-RPM
   ansible.builtin.dnf:
@@ -88,40 +88,45 @@
     state: latest
   become: true
 
-- name: Install PostgreSQL
-  ansible.builtin.dnf:
-    name: postgresql-server
-    state: present
-  become: true
+- block:
+  - name: Install PostgreSQL
+    ansible.builtin.dnf:
+      name: postgresql-server
+      state: present
+    become: true
 
-- name: Initialize Postgres Database
-  ansible.builtin.shell: /usr/bin/postgresql-setup --initdb
-  become: true
-  ignore_errors: true
+  - name: Initialize Postgres Database
+    ansible.builtin.shell: /usr/bin/postgresql-setup --initdb
+    become: true
+    ignore_errors: true
 
-- name: Install postgres configuration
-  ansible.builtin.copy:
-    src: files/pg_hba.conf
-    dest: /var/lib/pgsql/data/pg_hba.conf
-    mode: '0644'
-  become: true
+  - name: Install postgres configuration
+    ansible.builtin.copy:
+      src: files/pg_hba.conf
+      dest: /var/lib/pgsql/data/pg_hba.conf
+      mode: '0644'
+    become: true
 
-- name: Start and enable PostgreSQL
-  ansible.builtin.service:
-    name: postgresql
-    state: started
-    enabled: true
-  become: true
 
-- name: Create User and database for AWX-RPM
-  ansible.builtin.shell: "{{ item }}"
-  with_items:
-    - createuser -S awx
-    - createdb -O awx awx
-    - psql -c "ALTER USER awx WITH PASSWORD '{{ awx_rpm_dbpass }}'";
-  become: true
-  become_user: postgres
-  ignore_errors: true
+  - name: Start and enable PostgreSQL
+    ansible.builtin.service:
+      name: postgresql
+      state: started
+      enabled: true
+    become: true
+
+
+  - name: Create User and database for AWX-RPM
+    ansible.builtin.shell: "{{ item }}"
+    with_items:
+      - createuser -S awx
+      - createdb -O awx awx
+      - psql -c "ALTER USER awx WITH PASSWORD '{{ awx_rpm_dbpass }}'";
+    become: true
+    become_user: postgres
+    ignore_errors: true
+
+  when: awx_rpm_externaldb is false
 
 - name: Install AWX-RPM Settings
   ansible.builtin.template:
@@ -136,6 +141,7 @@
   ansible.builtin.shell: awx-manage migrate
   become: true
   become_user: awx
+  run_once: true
 
 - name: Fix Podman mapping (1/3)
   ansible.builtin.copy:
@@ -158,16 +164,28 @@
   become: true
   become_user: awx
 
+- name: Enable lingering for awx
+  ansible.builtin.shell: loginctl enable-linger 984
+  become: true
+
 - name: Initial AWX-RPM Configuration
   ansible.builtin.shell: "{{ item }}"
   with_items:
     - awx-manage createsuperuser --noinput --username={{ awx_rpm_user }} --email={{ awx_rpm_email }}
     - awx-manage update_password --username=admin --password={{ awx_rpm_password }}
+    - awx-manage register_queue --queuename=controlplane --instance_percent=100
+    - awx-manage register_queue --queuename=default --instance_percent=100
+  become: true
+  become_user: awx
+  ignore_errors: true
+  run_once: true
+
+- name: Initial AWX-RPM Configuration
+  ansible.builtin.shell: "{{ item }}"
+  with_items:
     - awx-manage register_default_execution_environments
     - awx-manage provision_instance --hostname=$(hostname)
     - awx-manage register_queue --queuename=tower --hostnames=$(hostname)
-    - awx-manage register_queue --queuename=controlplane --instance_percent=100
-    - awx-manage register_queue --queuename=default --instance_percent=100
   become: true
   become_user: awx
   ignore_errors: true

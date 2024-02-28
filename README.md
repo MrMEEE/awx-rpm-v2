@@ -1,3 +1,15 @@
+===== AWX-RPM =====
+
+RPM builds of the AWX project (https://www.github.com/ansible/awx)
+
+This project is NOT an official Ansible Project, but provides RPMs for the people that prefers this kind of deployment.
+
+An ansible playbook for installation is provided in ansible/
+
+Inventory can be configured in ansible/inventory and is documented within the file.
+
+___
+
 Update: 16-02-2024
 
 * AWX-RPM 23.8.1 is out..

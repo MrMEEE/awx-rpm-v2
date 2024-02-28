@@ -51,9 +51,9 @@ DATABASES = {
     'default': {
         'ATOMIC_REQUESTS': True,
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'awx',
-	'HOST': '127.0.0.1',
-	'USER': 'awx',
+        'NAME': '{{ awx_rpm_dbname }}',
+	'HOST': '{{ awx_rpm_dbhost }}',
+	'USER': '{{ awx_rpm_dbuser }}',
 	'PASSWORD': '{{ awx_rpm_dbpass }}'
     }
 }
