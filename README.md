@@ -10,6 +10,14 @@ Inventory can be configured in ansible/inventory and is documented within the fi
 
 ___
 
+Update: 29-02-2024
+
+* AWX-RPM 23.9.0 has been released
+
+Possibility to use an external database and run AWX-RPM in HA has been added
+
+___
+
 Update: 16-02-2024
 
 * AWX-RPM 23.8.1 is out..
