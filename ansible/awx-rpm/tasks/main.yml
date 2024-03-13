@@ -6,6 +6,12 @@
     state: installed
   become: true
 
+- name: Enable
+  ansible.builtin.dnf:
+    name: '@postgresql:15'
+    state: present
+  when: use_postgresql15
+
 - name: Put SELinux in permissive mode, TOOD, Re-enable
   ansible.posix.selinux:
     policy: targeted

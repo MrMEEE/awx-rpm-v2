@@ -4,7 +4,7 @@
 %define service_group receptor
 
 Summary: Receptor service
-Name: receptor
+Name: awx-receptor
 Version: ¤VERSION¤
 Release: 1%{dist}
 Source0: receptor-%{version}.tar.gz
