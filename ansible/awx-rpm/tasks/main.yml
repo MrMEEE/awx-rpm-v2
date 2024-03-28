@@ -177,7 +177,7 @@
   become_user: awx
 
 - name: Enable lingering for awx
-  ansible.builtin.shell: loginctl enable-linger 984
+  ansible.builtin.shell: loginctl enable-linger awx
   become: true
 
 - name: Initial AWX-RPM Configuration
