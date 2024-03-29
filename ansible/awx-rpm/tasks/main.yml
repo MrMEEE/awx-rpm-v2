@@ -5,18 +5,20 @@
     name: python3-policycoreutils
     state: installed
   become: true
+  when: ansible_facts.selinux.status == 'enabled'
 
 - name: Enable
   ansible.builtin.dnf:
     name: '@postgresql:15'
     state: present
-  when: use_postgresql15
+  when: awx_use_postgresql15
 
 - name: Put SELinux in permissive mode, TOOD, Re-enable
   ansible.posix.selinux:
     policy: targeted
     state: permissive
   become: true
+  when: ansible_facts.selinux.status == 'enabled'
 
 - name: Allow NGINX to listen on tcp port 8043
   community.general.seport:
@@ -25,6 +27,7 @@
     setype: http_port_t
     state: present
   become: true 
+  when: ansible_facts.selinux.status == 'enabled'
 
 - name: Allow NGINX to listen on tcp port 8013
   community.general.seport:
@@ -33,6 +36,7 @@
     setype: http_port_t
     state: present
   become: true
+  when: ansible_facts.selinux.status == 'enabled'
 
 - name: Set httpd_can_network_connect flag on and keep it persistent across reboots
   ansible.posix.seboolean:
@@ -40,6 +44,7 @@
     state: true
     persistent: true
   become: true
+  when: ansible_facts.selinux.status == 'enabled'
 
 - name: Populate service facts
   ansible.builtin.service_facts:
@@ -57,6 +62,7 @@
     state: true
     persistent: true
   become: true
+  when: ansible_facts.selinux.status == 'enabled'
 
 - name: Add the AWX-RPM repository
   ansible.builtin.yum_repository:
@@ -132,7 +138,7 @@
     become_user: postgres
     ignore_errors: true
 
-  when: awx_rpm_externaldb is false
+  when: not awx_rpm_external_db|bool
 
 - name: Install AWX-RPM Settings
   ansible.builtin.template:
@@ -171,7 +177,7 @@
   become_user: awx
 
 - name: Enable lingering for awx
-  ansible.builtin.shell: loginctl enable-linger 984
+  ansible.builtin.shell: loginctl enable-linger awx
   become: true
 
 - name: Initial AWX-RPM Configuration
