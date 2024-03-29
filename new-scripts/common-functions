@@ -7,6 +7,16 @@ get_version () {
 
 }
 
+get_python () {
+
+	if [ -f /opt/awx-rpm-v2/versions/PYTHON ]; then
+		cat /opt/awx-rpm-v2/versions/PYTHON
+	else
+		echo 3
+	fi	
+
+}
+
 build_rpm () {
 	VERSION=$(get_version)
 

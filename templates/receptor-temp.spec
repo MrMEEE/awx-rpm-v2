@@ -41,5 +41,5 @@ cp ./receptor $RPM_BUILD_ROOT/usr/bin/receptor
 %attr(0755, receptor, receptor) /usr/bin/receptor
 
 %changelog
-* Mon Feb 13 2023 22:55:34 +0000 Martin Juhl <m@rtinjuhl.dk> $VERSION
+* ¤DATE¤ Martin Juhl <m@rtinjuhl.dk> $VERSION
 - New version build: $VERSION

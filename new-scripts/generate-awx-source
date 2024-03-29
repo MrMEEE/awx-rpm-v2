@@ -4,6 +4,8 @@ source $(dirname "$0")/common-functions
 
 VERSION=$(get_version)
 
+DATE=$(date +"%a %b %d %Y %r %Z %z")
+
 echo "Generating source and build for AWX-RPM version: $VERSION"
 
 cd /opt/awx-rpm-v2/
@@ -16,22 +18,37 @@ fi
 
 cd /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
 
-for i in `ls python* |grep -v debuginfo |grep -v debugsource | grep -v poetry`; do
+BUILDVERSION=$(cat /opt/awx-rpm-v2/versions/deps/awx-rpm.spec |grep Release: | awk '{ print $2}' | cut -f1 -d%)
+
+if [[ "$BUILDVERSION" == "" ]];then
+        NEWBUILDVERSION=1
+else
+        let "NEWBUILDVERSION=BUILDVERSION+1"
+fi
+
+echo "" > /var/www/html/AWX-RPM/excludelists/awx-rpm-$VERSION-$NEWBUILDVERSION.el9
+
+for i in `ls python* |grep -v debuginfo |grep -v debugsource | grep -v poetry | grep -v wheel`; do
 
         PACKAGENAME=$(echo $i | rev | cut -f3- -d- | rev | cut -f1- -d-)
         PACKAGEVERSION=$(echo $i | rev | cut -f2 -d- | rev)
         DEPS=$DEPS$(echo "Requires: $PACKAGENAME = $PACKAGEVERSION\r")
         BUILDDEPS=$BUILDDEPS$(echo "BuildRequires: $PACKAGENAME = $PACKAGEVERSION\r")
+	echo $PACKAGENAME >> /var/www/html/AWX-RPM/excludelists/awx-rpm-$VERSION-$NEWBUILDVERSION.el9
+done
+
+RHELDEPS="Requires: "
+
+for i in `cat /opt/awx-rpm-v2/versions/deps/rhel-deps.txt`; do
+
+	RHELDEPS=$RHELDEPS$(echo $i | sed "s/python-/python3-/g")" "
+	echo $i | sed "s/python-/python3-/g" >> /var/www/html/AWX-RPM/excludelists/awx-rpm-$VERSION-$NEWBUILDVERSION.el9
 
 done
 
-BUILDVERSION=$(cat /opt/awx-rpm-v2/versions/deps/awx-rpm.spec |grep Release: | awk '{ print $2}' | cut -f1 -d%)
-
-if [[ "$BUILDVERSION" == "" ]];then
-	NEWBUILDVERSION=1
-else
-	let "NEWBUILDVERSION=BUILDVERSION+1"
-fi
+DEPS=$DEPS$RHELDEPS
+BUILDDEPS=$BUILDDEPS$"Build"$RHELDEPS
+CHANGELOG=$(git log --oneline --decorate 24.0.0..24.1.0 | cut -d" " -f2- | sed -e 's/^/- /')
 
 cp /opt/awx-rpm-v2/templates/awx-rpm-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
@@ -40,6 +57,12 @@ sed -i "s/Release:.*$/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/versio
 sed -i "s|¤BUILDREQUIRES¤|$BUILDDEPS|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 sed -i "s|¤REQUIRES¤|$DEPS|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 sed -i "s|¤VERSION¤|$VERSION|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s|¤DATE¤|$DATE|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s|¤CHANGELOG¤|$CHANGELOG|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 sed -i "s|\r|\n|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
 rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+
+#/opt/awx-rpm-v2/new-scripts/loadexcludelists $VERSION-$NEWBUILDVERSION
+
+#mock --scrub all

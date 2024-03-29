@@ -33,17 +33,17 @@ if [[ $PACKAGE == "" ]];then
 		PACKAGE=$(echo $i | cut -f1 -d"=") 
 		PACKAGEVERSION=$(echo $i | cut -f3 -d"=")
 		echo "Generating SPEC-file for $PACKAGE version $PACKAGEVERSION"
-		pyp2spec --license gpl -v $PACKAGEVERSION $PACKAGE 
+		pyp2spec -p 3.11 --license gpl -v $PACKAGEVERSION $PACKAGE 
 		cp /opt/awx-rpm-v2/versions/deps/*$PACKAGE.spec /opt/awx-rpm-v2/versions/deps/*$PACKAGE.conf /opt/awx-rpm-v2/versions/deps/original/
 	done
 else
         if [[ $PACKAGEVERSION == "" ]];then
 		echo "Generating SPEC-file for $PACKAGE"
-        	pyp2spec --license gpl $PACKAGE
+        	pyp2spec -p 3.11 --license gpl $PACKAGE
 		cp /opt/awx-rpm-v2/versions/deps/*$PACKAGE.spec /opt/awx-rpm-v2/versions/deps/*$PACKAGE.conf /opt/awx-rpm-v2/versions/deps/original/
 	else
 		echo "Generating SPEC-file for $PACKAGE version $PACKAGEVERSION"
-	        pyp2spec --license gpl -v $PACKAGEVERSION $PACKAGE
+	        pyp2spec -p 3.11 --license gpl -v $PACKAGEVERSION $PACKAGE
 		cp /opt/awx-rpm-v2/versions/deps/*$PACKAGE.spec /opt/awx-rpm-v2/versions/deps/*$PACKAGE.conf /opt/awx-rpm-v2/versions/deps/original/
 	fi
 fi

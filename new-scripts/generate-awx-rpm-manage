@@ -1,0 +1,36 @@
+#!/bin/bash
+
+source $(dirname "$0")/common-functions
+
+VERSION=$(get_version)
+
+DATE=$(date +"%a %b %d %Y %r %Z %z")
+
+PACKAGEVERSION=$1
+
+echo "Generating source and build for awx-rpm-manage version: $PACKAGEVERSION for version: $VERSION"
+
+wget -O /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/awx-rpm-manage-$PACKAGEVERSION.tar.gz https://github.com/MrMEEE/awx-rpm-manage/archive/refs/tags/$PACKAGEVERSION.tar.gz
+
+BUILDVERSION=$(cat /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec |grep Release: | awk '{ print $2}' | cut -f1 -d%)
+
+if [[ "$BUILDVERSION" == "" ]];then
+        NEWBUILDVERSION=1
+else
+        let "NEWBUILDVERSION=BUILDVERSION+1"
+fi
+
+cp /opt/awx-rpm-v2/templates/awx-rpm-manage-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec
+sed -i "s|¤VERSION¤|$PACKAGEVERSION|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec
+sed -i "s|¤DATE¤|$DATE|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec
+sed -i "s/Release:.*$/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec
+
+rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec
+
+mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/awx-rpm-manage-$PACKAGEVERSION-$NEWBUILDVERSION.el9.src.rpm --rpmbuild-opts="--nocheck" --no-cleanup-after
+rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
+cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+createrepo_c /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*
+mock -r epel-9-x86_64 --clean
+

@@ -4,6 +4,8 @@ source $(dirname "$0")/common-functions
 
 VERSION=$(get_version)
 
+DATE=$(date +"%a %b %d %Y %r %Z %z")
+
 PACKAGEVERSION=$1
 
 echo "Generating source and build for receptor version: $PACKAGEVERSION for version: $VERSION"
@@ -13,6 +15,7 @@ wget -O /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/receptor-$PACKAGEVERSION.tar.
 cp /opt/awx-rpm-v2/templates/receptor-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
 sed -i "s|¤VERSION¤|$PACKAGEVERSION|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
 sed -i "s/%setup/%setup -n receptor-%{version}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
+sed -i "s|¤DATE¤|$DATE|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
 
 rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
 

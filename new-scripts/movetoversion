@@ -46,6 +46,7 @@ mkdir -p /opt/awx-rpm-v2/migration/{source,orig,conf,patch,awx-rpm}
 cp -ar /opt/awx-rpm-v2/versions/deps/extra-sources /opt/awx-rpm-v2/migration
 mkdir -p /opt/awx-rpm-v2/rpmbuilds/$NEWVERSION/SOURCES/
 cp /opt/awx-rpm-v2/versions/deps/extra-sources/* /opt/awx-rpm-v2/rpmbuilds/$NEWVERSION/SOURCES/
+cp /opt/awx-rpm-v2/versions/PYTHON /opt/awx-rpm-v2/migration/
 if [ -d /opt/awx-rpm-v2/versions/awx-rpm ]; then
 	for i in `ls /opt/awx-rpm-v2/versions/awx-rpm/*-$FROMVERSION | xargs -n 1 basename`;do
 		FILENAME=$(echo $i | sed "s/-$FROMVERSION/-$NEWVERSION/g")
@@ -109,6 +110,7 @@ done
 cp /opt/awx-rpm-v2/migration/remove-deps.txt /opt/awx-rpm-v2/versions/deps/remove-deps.txt
 cp /opt/awx-rpm-v2/migration/rhel-deps.txt /opt/awx-rpm-v2/versions/deps/rhel-deps.txt
 cp -ar /opt/awx-rpm-v2/migration/extra-sources /opt/awx-rpm-v2/versions/deps/
+cp /opt/awx-rpm-v2/migration/PYTHON /opt/awx-rpm-v2/versions/PYTHON
 mkdir -p /opt/awx-rpm-v2/versions/awx-rpm
 cp /opt/awx-rpm-v2/migration/awx-rpm/* /opt/awx-rpm-v2/versions/awx-rpm/
 
