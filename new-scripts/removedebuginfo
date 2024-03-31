@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PACKAGENAME=$1
+
+if [ ! -f /opt/awx-rpm-v2/versions/deps/python-$PACKAGENAME.spec ]; then
+	if [ ! -f /opt/awx-rpm-v2/versions/deps/python3-$PACKAGENAME.spec ]; then
+		echo "Package $PACKAGENAME doesn't exist"
+		exit 0
+	else
+		FILENAME=python3-$PACKAGENAME
+	fi
+else
+	FILENAME=python-$PACKAGENAME
+fi
+
+
+
+sed -i '1i%global debug_package %{nil}' /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+
+/opt/awx-rpm-v2/new-scripts/buildsrc $FILENAME

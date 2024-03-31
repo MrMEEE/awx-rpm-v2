@@ -3,6 +3,8 @@
 source $(dirname "$0")/common-functions
 
 OLDVERSION=$(get_version)
+BUILDSTATUS=$2
+PACKAGENAME=$3
 
 echo "Currently on version $OLDVERSION"
 
@@ -20,7 +22,7 @@ if [[ "$VERSION" == "save" ]]; then
 	echo "Saving changes to version: $OLDVERSION"
 fi
 
-$(dirname "$0")/checkbuilds all md > /opt/awx-rpm-v2/versions/README.md
+$(dirname "$0")/checkbuilds all md $BUILDSTATUS $PACKAGENAME > /opt/awx-rpm-v2/versions/README.md
 
 cd /opt/awx-rpm-v2/versions/
 git add /opt/awx-rpm-v2/versions/README.md

@@ -3,6 +3,7 @@
 source $(dirname "$0")/common-functions
 
 VERSION=$(get_version)
+PYTHONBUILD=$(get_python)
 
 if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS" ]; then
         if [ "$1" == "force" ]; then
@@ -18,33 +19,31 @@ mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
 mock -r epel-9-x86_64 --clean > /dev/null 2>&1
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
-
 NEWPACKAGES=0
 REDOBUILD=1
 
 while [[ $REDOBUILD == 1 ]]; do
-
-	for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
-
-	        PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
-	        PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
-	        PYTHONPACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python/g')
-	        PYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
-	        PYTHON3PACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python3/g')
-	        PYTHON3PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHON3PACKAGE* 2> /dev/null)
-	        ALTPACKAGE=$(echo $PACKAGE | sed 's/python3/python/g')
-	        ALTPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$ALTPACKAGE* 2> /dev/null)
-		GITPYTHON=$(echo $PACKAGE | sed 's/gitpython3/gitpython/g')
-	        GITPYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$GITPYTHON* 2> /dev/null)	
 	
+	for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
+		PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed "s/python/python$PYTHONBUILD/g" | sed "s/python$(echo $PYTHONBUILD)3/python$PYTHONBUILD/g")
+	        PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
+	        PYTHONPACKAGE=$(echo $PACKAGE | sed "s/python$PYTHONBUILD/python$PYTHONBUILD-python/g")
+	        PYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
+	        PYTHON3PACKAGE=$(echo $PACKAGE | sed "s/python$PYTHONBUILD/python$PYTHONBUILD-python3/g")
+	        PYTHON3PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHON3PACKAGE* 2> /dev/null)
+	        ALTPACKAGE=$(echo $PACKAGE | sed "s/python$PYTHONBUILD/python/g")
+	        ALTPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$ALTPACKAGE* 2> /dev/null)
+	        GITPYTHON=$(echo $PACKAGE | sed "s/gitpython$(echo $PYTHONBUILD)/gitpython/g")
+	        GITPYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$GITPYTHON* 2> /dev/null)
+			
 		if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]] || [[ "$PYTHON3PACKAGEPRESENT" != "" ]] || [[ "$ALTPACKAGEPRESENT" != "" ]] || [[ "$GITPYTHONPACKAGEPRESENT" != "" ]]; then
 			echo -e "$PACKAGE ${GREEN}Built${NC}"
 		else
 		        echo -e "$PACKAGE ${RED}Missing${NC}... Building.."
 	        	build_rpm $i
+			echo
+        		echo "Packages built on current run: $NEWPACKAGES"
+        		echo
 		fi
 
 	done
