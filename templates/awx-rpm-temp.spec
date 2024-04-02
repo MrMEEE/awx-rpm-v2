@@ -1,3 +1,5 @@
+%global python3_pkgversion ¤PYTHON3PKGVERSION¤
+
 %define  debug_package %{nil}
 %define _prefix /opt/awx-rpm
 %define _mandir %{_prefix}/share/man
@@ -38,10 +40,10 @@ Vendor: AWX
 Prefix: %{_prefix}
 AutoReqProv: false
 
-BuildRequires: make python3 python3-devel nodejs npm gettext git python3-build rsync libpq libpq-devel 
+BuildRequires: make python%{python3_pkgversion} python%{python3_pkgversion}-devel nodejs npm gettext git python%{python3_pkgversion}-build rsync libpq libpq-devel 
 ¤BUILDREQUIRES¤
 
-Requires: python3 nodejs >= 18 npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg awx-receptor libpq 
+Requires: python%{python3_pkgversion} nodejs >= 18 npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg awx-receptor libpq 
 ¤REQUIRES¤
 
 %{?systemd_requires}

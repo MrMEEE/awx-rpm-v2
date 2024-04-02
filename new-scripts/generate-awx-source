@@ -3,6 +3,7 @@
 source $(dirname "$0")/common-functions
 
 VERSION=$(get_version)
+PYTHONBUILD=$(get_python)
 
 DATE=$(date +"%a %b %d %Y %r %Z %z")
 
@@ -59,6 +60,7 @@ sed -i "s|¤REQUIRES¤|$DEPS|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 sed -i "s|¤VERSION¤|$VERSION|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 sed -i "s|¤DATE¤|$DATE|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 sed -i "s|¤CHANGELOG¤|$CHANGELOG|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s|¤PYTHON3PKGVERSION¤|$PYTHONBUILD|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 sed -i "s|\r|\n|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
 rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
