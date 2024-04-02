@@ -61,7 +61,7 @@ git checkout -f %{version}
 
 %install
 echo 'node-options="--openssl-legacy-provider"' >> awx/ui/.npmrc
-GIT_BRANCH=%{version} VERSION=%{version} python3 -m build -s
+GIT_BRANCH=%{version} VERSION=%{version} python%{python3_pkgversion} -m build -s
 make ui-next/src
 cp %{_sourcedir}/awx-rpm-logo.svg-%{version} awx/ui_next/src/frontend/awx/main/awx-rpm-logo.svg
 sed -i "s/awx-logo.svg/awx-rpm-logo.svg/g" awx/ui_next/src/frontend/awx/main/AwxMasthead.tsx
@@ -69,8 +69,7 @@ make ui-next
 make ui-release
 
 mkdir -p /var/log/tower
-#python3 manage.py collectstatic --clear --noinput
-AWX_SETTINGS_FILE=awx/settings/production.py SKIP_SECRET_KEY_CHECK=yes SKIP_PG_VERSION_CHECK=yes python3 manage.py collectstatic --noinput --clear
+AWX_SETTINGS_FILE=awx/settings/production.py SKIP_SECRET_KEY_CHECK=yes SKIP_PG_VERSION_CHECK=yes python%{python3_pkgversion} manage.py collectstatic --noinput --clear
 mkdir -p %{buildroot}%{_prefix}
 for i in `find -type f |grep mappings.wasm`; do
 	echo "Removing $i"
@@ -82,7 +81,7 @@ tar zxvf awx-*.tar.gz
 rm awx-*.tar.gz
 mv awx-*/* .
 rm -rf awx-*
-pip3 install --root=%{buildroot}/ .
+pip%{python3_pkgversion} install --root=%{buildroot}/ .
 popd
 sed -i "s|/builddir.*.x86_64||g" $RPM_BUILD_ROOT/usr/bin/awx-manage
 pushd %{buildroot}/usr/lib/python3.9/site-packages/
