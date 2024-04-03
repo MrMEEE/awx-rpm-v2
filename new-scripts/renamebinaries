@@ -1,0 +1,37 @@
+#!/bin/bash
+
+PACKAGENAME=$1
+
+if [ ! -f /opt/awx-rpm-v2/versions/deps/python-$PACKAGENAME.spec ]; then
+	if [ ! -f /opt/awx-rpm-v2/versions/deps/python3-$PACKAGENAME.spec ]; then
+		echo "Package $PACKAGENAME doesn't exist"
+		exit 0
+	else
+		FILENAME=python3-$PACKAGENAME
+	fi
+else
+	FILENAME=python-$PACKAGENAME
+fi
+BEFORE="# START RENAMING OF BINARIES 1\n"
+BEFORE="$BEFORE%if \"%{python3_pkgversion}\" != \"3\"\n"
+for binary in "${@:2}"; do
+	BEFORE=$BEFORE"mv \$RPM_BUILD_ROOT/usr/bin/$binary \$RPM_BUILD_ROOT/usr/bin/$binary%{python3_pkgversion}\n"
+done
+BEFORE="$BEFORE%endif\n"
+BEFORE="$BEFORE# END RENAMING OF BINARIES 1\n"
+
+AFTER="# START RENAMING OF BINARIES 2\n"
+AFTER="$AFTER%if \"%{python3_pkgversion}\" != \"3\"\n"
+for binary in "${@:2}"; do
+	AFTER=$AFTER"sed -i \"s|/usr/bin/$binary|/usr/bin/$binary%{python3_pkgversion}|g\" %{pyproject_files}\n"
+done
+AFTER="$AFTER%endif\n"
+AFTER="$AFTER# END RENAMING OF BINARIES 2\n"
+
+sed -i "/# START RENAMING OF BINARIES 1/,/# END RENAMING OF BINARIES 1/d" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+sed -i "/# START RENAMING OF BINARIES 2/,/# END RENAMING OF BINARIES 2/d" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+
+sed -i "/%pyproject_save_files/i $BEFORE" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+sed -i "/%pyproject_save_files/a $AFTER" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+
+/opt/awx-rpm-v2/new-scripts/buildsrc $FILENAME

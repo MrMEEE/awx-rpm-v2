@@ -110,7 +110,7 @@ for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
 			if [[ `grep "error: command 'gcc' failed: No such file or directory" /opt/awx-rpm-v2/versions/logs/$i.log |wc -l` > 0 ]]; then
 				echo "  The GCC compiler is missing as a buildrequirement, run /opt/awx-rpm-v2/new-scripts/adddepend $(get_packagename $PACKAGE) gcc build"
 			fi
-			if [[ `grep "Arch dependent binaries in noarch package" /opt/awx-rpm-v2/versions/logs/$i.log |wc -l` > 0 ]]; the
+			if [[ `grep "Arch dependent binaries in noarch package" /opt/awx-rpm-v2/versions/logs/$i.log |wc -l` > 0 ]]; then
 				echo "  Package is set as noarch, but contains binary content"
 			fi
 			echo "  Missing Files:"

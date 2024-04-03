@@ -42,7 +42,7 @@ RHELDEPS="Requires: "
 
 for i in `cat /opt/awx-rpm-v2/versions/deps/rhel-deps.txt`; do
 
-	RHELDEPS=$RHELDEPS$(echo $i | sed "s/python-/python3-/g")" "
+	RHELDEPS=$RHELDEPS$(echo $i | sed "s/python-/python$PYTHONBUILD-/g")" "
 	echo $i | sed "s/python-/python3-/g" >> /var/www/html/AWX-RPM/excludelists/awx-rpm-$VERSION-$NEWBUILDVERSION.el9
 
 done
