@@ -27,7 +27,7 @@ sed -i "s/Release:.*$/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/versio
 
 rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec
 
-mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/awx-rpm-manage-$PACKAGEVERSION-$NEWBUILDVERSION.el9.src.rpm --rpmbuild-opts="--nocheck" --no-cleanup-after
+mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/awx-rpm-manage-$PACKAGEVERSION-$NEWBUILDVERSION.el9.src.rpm --rpmbuild-opts="--nocheck" --no-cleanup-after
 rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
 cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
 createrepo_c /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/

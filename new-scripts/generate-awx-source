@@ -29,7 +29,7 @@ fi
 
 echo "" > /var/www/html/AWX-RPM/excludelists/awx-rpm-$VERSION-$NEWBUILDVERSION.el9
 
-for i in `ls python* |grep -v debuginfo |grep -v debugsource | grep -v poetry | grep -v wheel`; do
+for i in `ls python* |grep -v debuginfo |grep -v debugsource | grep -v poetry | grep -v wheel | grep -v awx-rpm-manage`; do
 
         PACKAGENAME=$(echo $i | rev | cut -f3- -d- | rev | cut -f1- -d-)
         PACKAGEVERSION=$(echo $i | rev | cut -f2 -d- | rev)
@@ -49,7 +49,8 @@ done
 
 DEPS=$DEPS$RHELDEPS
 BUILDDEPS=$BUILDDEPS$"Build"$RHELDEPS
-CHANGELOG=$(git log --oneline --decorate 24.0.0..24.1.0 | cut -d" " -f2- | sed -e 's/^/- /')
+LASTVERSION=$(cd /opt/awx-rpm-v2/versions/ && git branch | sed 's/*/ /g' |grep -B 1 "$VERSION" | head -1)
+CHANGELOG=$(git log --oneline --decorate $LASTVERSION..$VERSION | cut -d" " -f2- | sed -e 's/^/- /')
 
 cp /opt/awx-rpm-v2/templates/awx-rpm-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
@@ -65,6 +66,3 @@ sed -i "s|\r|\n|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
 rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
-#/opt/awx-rpm-v2/new-scripts/loadexcludelists $VERSION-$NEWBUILDVERSION
-
-#mock --scrub all

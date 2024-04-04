@@ -164,9 +164,6 @@ fi
 %config %{service_configdir}/settings.py
 %config /etc/nginx/conf.d/awx-rpm.conf
 /usr/lib/systemd/system/awx.target
-/etc/receptor/receptor-hop.conf
-/etc/receptor/receptor-worker.conf
-/etc/receptor/receptor.conf
 /etc/receptor
 #/usr/bin/ansible-tower-service
 #/usr/bin/ansible-tower-setup
@@ -179,15 +176,6 @@ fi
 /var/lib/awx/rsyslog
 /var/lib/awx/projects
 /var/lib/awx/job_status
-
-%if 0%{?el7}
-%attr(0644, root, root) %{_unitdir}/awx-cbreceiver.service
-%attr(0644, root, root) %{_unitdir}/awx-dispatcher.service
-%attr(0644, root, root) %{_unitdir}/awx-channels-worker.service
-%attr(0644, root, root) %{_unitdir}/awx-daphne.service
-%attr(0644, root, root) %{_unitdir}/awx-web.service
-%attr(0644, root, root) %{_unitdir}/awx.service
-%endif
 
 %changelog
 * ¤DATE¤ Martin Juhl <m@rtinjuhl.dk> ¤VERSION¤

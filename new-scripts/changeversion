@@ -74,3 +74,4 @@ git push origin -q --all
 
 echo "$VERSION" > /opt/awx-rpm-v2/working-version
 
+mock --scrub=all

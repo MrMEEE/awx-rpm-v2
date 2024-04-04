@@ -23,7 +23,7 @@ BEFORE="$BEFORE# END RENAMING OF BINARIES 1\n"
 AFTER="# START RENAMING OF BINARIES 2\n"
 AFTER="$AFTER%if \"%{python3_pkgversion}\" != \"3\"\n"
 for binary in "${@:2}"; do
-	AFTER=$AFTER"sed -i \"s|/usr/bin/$binary|/usr/bin/$binary%{python3_pkgversion}|g\" %{pyproject_files}\n"
+	AFTER=$AFTER"sed -i \"s|/usr/bin/$binary\$|/usr/bin/$binary%{python3_pkgversion}|g\" %{pyproject_files}\n"
 done
 AFTER="$AFTER%endif\n"
 AFTER="$AFTER# END RENAMING OF BINARIES 2\n"
