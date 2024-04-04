@@ -10,6 +10,22 @@ Inventory can be configured in ansible/inventory and is documented within the fi
 
 ---
 
+Update: 04-04-2024
+
+* AWX-RPM 24.1.0
+* awx-rpm-manage 1.1.3 now includes upgrading (awx-rpm-manage upgrade)
+* AWX-RPM moved from python3.9 to python3.11
+
+This release has taken some time, due to the move to python 3.11.. but it also seems to solve alot of the dependency issues. Hopefully this will make everything easier moving forward.
+
+I have also added some new tools to the building scripts.
+
+And last, but not least, awx-rpm-manage has been updated to allow for upgrades.. this should make the move from python3.9->3.11 easy for you guys, and also make update/upgrade a breeze. 
+
+See (https://github.com/MrMEEE/awx-rpm-manage) for more info.
+
+---
+
 Update: 13-03-2024
 
 * AWX-RPM 24.0.0 has been released
