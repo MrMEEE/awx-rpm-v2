@@ -21,6 +21,9 @@ else
 fi
 
 cp /opt/awx-rpm-v2/templates/awx-rpm-manage-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec
+cd /opt/awx-rpm-v2/versions/
+git add deps/awx-rpm-manage.spec
+
 sed -i "s|¤VERSION¤|$PACKAGEVERSION|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec
 sed -i "s|¤DATE¤|$DATE|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec
 sed -i "s/Release:.*$/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm-manage.spec

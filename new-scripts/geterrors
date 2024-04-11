@@ -82,9 +82,10 @@ for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
 				echo "$PACKAGE | $i | **Missing** |"
 			fi
 		else
+		    if [ -f /opt/awx-rpm-v2/versions/logs/$i.log ]; then
 			echo -e "$PACKAGE - $i - ${RED}Missing${NC}"
 			echo "  Missing dependecies:"
-			grep "Problem: nothing provides requested" /opt/awx-rpm-v2/versions/logs/$i.log |sort | uniq | while read line; do
+			grep "nothing provides requested" /opt/awx-rpm-v2/versions/logs/$i.log |sort | uniq | while read line; do
                         	echo "    $(echo $line | cut -f2- -d\( | rev | cut -c1- |rev )"
                         done
 			echo "  Missing Packages:"
@@ -119,6 +120,7 @@ for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
 			done
 			echo 
 		fi
+              fi
 		MISSING=$((MISSING+1))
 	fi 
 done

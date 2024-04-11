@@ -10,6 +10,17 @@ Inventory can be configured in ansible/inventory and is documented within the fi
 
 ---
 
+Update: 11-04-2024
+
+* AWX-RPM 24.2.0
+* awx-rpm-manage 1.2.0 (bugfixes)
+
+Remember to update awx-rpm-manage before upgrading
+
+Have fun
+
+---
+
 Update: 04-04-2024
 
 * AWX-RPM 24.1.0
