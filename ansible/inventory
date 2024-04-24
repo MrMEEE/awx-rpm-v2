@@ -17,7 +17,8 @@ awx_rpm_dbhost=127.0.0.1
 awx_rpm_external_db=false
 # Use postgresql 15, supported from 24.0.0
 awx_use_postgresql15=false
-
+# Configure allowed hostnames
+# awx_rpm_allowedhosts='["hostname1.domain.pub", "hostname2.domain.local"]'
 
 [awx-rpm]
 10.0.0.1  ansible_user=root ansible_password=xxxxxxxx

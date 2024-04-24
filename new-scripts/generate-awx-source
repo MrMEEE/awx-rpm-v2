@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 source $(dirname "$0")/common-functions
 
 VERSION=$(get_version)
@@ -50,8 +52,8 @@ done
 DEPS=$DEPS$RHELDEPS
 BUILDDEPS=$BUILDDEPS$"Build"$RHELDEPS
 LASTVERSION=$(cd /opt/awx-rpm-v2/versions/ && git branch | sed 's/*/ /g' |grep -B 1 "$VERSION" | head -1)
-CHANGELOG=$(git log --oneline --decorate $LASTVERSION..$VERSION | cut -d" " -f2- | sed -e 's/^/- /')
-
+CHANGELOG=$(cd /opt/awx-rpm-v2/awx/ && git log --oneline --decorate $LASTVERSION..$VERSION | cut -d" " -f2- | sed -e "s/^/- /g" | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/\$/\\$/g')
+echo $CHANGELOG
 cp /opt/awx-rpm-v2/templates/awx-rpm-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
 sed -i "s/Release:.*$/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
