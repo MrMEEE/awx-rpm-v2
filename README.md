@@ -10,6 +10,15 @@ Inventory can be configured in ansible/inventory and is documented within the fi
 
 ---
 
+Update: 25-04-2024
+
+* AWX-RPM 24.3.0
+* UI_NEXT is currently broken, due to issue #29
+
+Have fun
+
+---
+
 Update: 11-04-2024
 
 * AWX-RPM 24.2.0
