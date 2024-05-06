@@ -60,6 +60,10 @@ git checkout -f %{version}
 %build
 
 %install
+mkdir translations/
+mv awx/locale/en-us/LC_MESSAGES/django.po translations/
+mv awx/ui/src/locales/en/messages.po translations/
+
 echo 'node-options="--openssl-legacy-provider"' >> awx/ui/.npmrc
 GIT_BRANCH=%{version} VERSION=%{version} python%{python3_pkgversion} -m build -s
 make ui-next/src
@@ -70,6 +74,10 @@ make ui-release
 
 mkdir -p /var/log/tower
 AWX_SETTINGS_FILE=awx/settings/production.py SKIP_SECRET_KEY_CHECK=yes SKIP_PG_VERSION_CHECK=yes python%{python3_pkgversion} manage.py collectstatic --noinput --clear
+
+chmod +x tools/scripts/l18n/post_translation.sh
+./tools/scripts/l18n/post_translation.sh
+
 mkdir -p %{buildroot}%{_prefix}
 for i in `find -type f |grep mappings.wasm`; do
 	echo "Removing $i"

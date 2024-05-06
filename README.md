@@ -10,6 +10,15 @@ Inventory can be configured in ansible/inventory and is documented within the fi
 
 ---
 
+Update: 06-05-2024
+
+* AWX-RPM 24.3.1
+* UI_NEXT and Localization is fixed
+
+Released directly from Red Hat Summit 2024
+
+---
+
 Update: 25-04-2024
 
 * AWX-RPM 24.3.0

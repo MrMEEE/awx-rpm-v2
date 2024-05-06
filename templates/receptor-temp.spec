@@ -15,7 +15,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}.buildroot
 Vendor: Ansible
 Prefix: %{_prefix}
 
-BuildRequires: golang make python%{python3_pkgversion} python%{python3_pkgversion}-wheel git
+BuildRequires: golang = 1.20.12 
+BuildRequires: make python%{python3_pkgversion} python%{python3_pkgversion}-wheel git
 
 %description
 %{summary}
@@ -24,6 +25,7 @@ BuildRequires: golang make python%{python3_pkgversion} python%{python3_pkgversio
 %setup
 
 %build
+go mod tidy
 make build-all
 
 %install
