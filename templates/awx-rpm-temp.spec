@@ -35,6 +35,7 @@ Source8: awx-rpm-nginx.conf-%{version}
 Patch0: awx-patch.patch-%{version}
 License: GPLv3
 Group: AWX
+URL: https://awx.wiki
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}.buildroot
 Vendor: AWX
 Prefix: %{_prefix}
@@ -169,7 +170,7 @@ fi
 %dir %attr(0750, %{service_user}, %{service_group}) %{service_homedir}/venv
 %{service_homedir}/.tower_version
 %dir %attr(0770, %{service_user}, %{service_group}) %{service_logdir}
-%config %{service_configdir}/settings.py
+%config(noreplace) %{service_configdir}/settings.py
 %config /etc/nginx/conf.d/awx-rpm.conf
 /usr/lib/systemd/system/awx.target
 /etc/receptor
