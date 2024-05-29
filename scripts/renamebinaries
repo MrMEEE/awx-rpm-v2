@@ -34,4 +34,4 @@ sed -i "/# START RENAMING OF BINARIES 2/,/# END RENAMING OF BINARIES 2/d" /opt/a
 sed -i "/%pyproject_save_files/i $BEFORE" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
 sed -i "/%pyproject_save_files/a $AFTER" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
 
-/opt/awx-rpm-v2/new-scripts/buildsrc $FILENAME
+/opt/awx-rpm-v2/scripts/buildsrc $FILENAME

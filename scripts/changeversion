@@ -1,21 +1,49 @@
 #!/bin/bash
 
-OLDVERSION=$(cat /opt/awx-rpm-v2/working-version)
+source $(dirname "$0")/common-functions
+
+OLDVERSION=$(get_version)
+BUILDSTATUS=$2
+PACKAGENAME=$3
+
+echo "Currently on version $OLDVERSION"
 
 if [ -z "$1" ]; then
         echo "Please provide AWX version"
+	echo
+	cd /opt/awx-rpm-v2/versions/
+	git branch -rv |cut -f2- -d\/
         exit 1
 fi
 
 VERSION=$1
 
-cd /opt/awx-rpm-v2/versions/
+if [[ "$VERSION" == "save" ]]; then
+	echo "Saving changes to version: $OLDVERSION"
+fi
 
-if [ `git tag |grep $VERSION` ]; then
+$(dirname "$0")/checkbuilds all md $BUILDSTATUS $PACKAGENAME > /opt/awx-rpm-v2/versions/README.md
+
+cd /opt/awx-rpm-v2/versions/
+git add /opt/awx-rpm-v2/versions/README.md
+git add /opt/awx-rpm-v2/versions/deps
+git add /opt/awx-rpm-v2/versions/logs
+git add /opt/awx-rpm-v2/versions/awx-rpm
+
+echo "Publishing Package build changes"
+git commit -qam "Publishing build changes for version: `cat /opt/awx-rpm-v2/working-version`" &> /dev/null 
+git push &> /dev/null
+
+if [[ "$VERSION" == "save" ]]; then
+	exit 0
+fi
+
+if [[ `git branch |grep $VERSION | wc -l` -gt 0 ]]; then
 	git checkout $VERSION
+	VERSIONEXISTS=1
 else
 	echo "Version $VERSION hasn't been generated yet"
-	exit 0
+	VERSIONEXISTS=0
 fi
 
 cd /opt/awx-rpm-v2/awx/
@@ -24,13 +52,26 @@ git checkout -q devel
 git pull -q
 
 if [ `git tag |grep $VERSION` ]; then
-        git -c advice.detachedHead=false checkout -q $VERSION
+        git -c advice.detachedHead=false checkout $VERSION
 	echo "Version changed to: $VERSION"
+	if [[ $VERSIONEXISTS == 0 ]];then
+		echo "Creating New Version"
+		cd /opt/awx-rpm-v2/versions/
+		git switch --orphan $VERSION
+		touch /opt/awx-rpm-v2/versions/VERSION-$VERSION
+		git add /opt/awx-rpm-v2/versions/VERSION-$VERSION
+		git commit -am "Created version: $VERSION"
+	fi
 else
         echo "Version $VERSION doesn't exist"
-	/opt/awx-rpm-v2/scripts/changeversion $OLDVERSION
 	VERSION=$OLDVERSION
+	cd /opt/awx-rpm-v2/versions/
+	git checkout -q $VERSION
 fi
+
+cd /opt/awx-rpm-v2/versions/
+git push origin -q --all
 
 echo "$VERSION" > /opt/awx-rpm-v2/working-version
 
+mock --scrub=all

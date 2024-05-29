@@ -33,4 +33,4 @@ if [[ "${WHERE}" == both ]] || [[ "${WHERE}" == runtime ]]; then
         sed -i "0,/BuildRequires/s//Requires: $(echo $DEPENDENCY)\n&/" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
 fi
 
-/opt/awx-rpm-v2/new-scripts/buildsrc $FILENAME
+/opt/awx-rpm-v2/scripts/buildsrc $FILENAME

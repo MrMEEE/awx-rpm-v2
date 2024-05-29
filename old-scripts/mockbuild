@@ -1,0 +1,44 @@
+#!/bin/bash
+
+VERSION=$(cat /opt/awx-rpm-v2/working-version)
+
+if [ ! -z $1 ] && [ "$1" != "force" ];then
+        VERSION=$1
+	/opt/awx-rpm-v2/scripts/changeversion $VERSION
+fi
+
+if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS" ]; then
+        if [ "$2" == "force" ] || [ "$1" == "force" ]; then
+                echo "Removing built packages"
+		rm -rf "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS"
+        fi
+fi
+
+echo "Creating output folder"
+mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+
+cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+
+mock -r epel-9-x86_64 --clean
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
+	PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
+        PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
+        PYTHONPACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python/g')
+        PYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
+        if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]]; then
+	        echo -e "$PACKAGE ${GREEN}Built${NC}"
+	else
+	        echo -e "$PACKAGE ${RED}Missing${NC}... Building.."
+		mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 --rpmbuild-opts="--nocheck" /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$i
+		rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
+		cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+		rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*
+		mock -r epel-9-x86_64 --clean
+        fi
+done
+

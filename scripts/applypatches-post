@@ -1,6 +1,6 @@
 #!/bin/bash
 
-/opt/awx-rpm-v2/new-scripts/buildsrc force
+/opt/awx-rpm-v2/scripts/buildsrc force
 cd /opt/awx-rpm-v2/versions
 git add deps
 git commit -qam "Source Built"

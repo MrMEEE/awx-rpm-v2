@@ -1,21 +1,16 @@
 #!/bin/bash
 
-VERSION=$(cat /opt/awx-rpm-v2/working-version)
+source $(dirname "$0")/common-functions
 
-if [ ! -z $1 ] && [ "$1" != "force" ] && [ "$1" != "all" ];then
-        VERSION=$1
-fi
+PYTHONBUILD=$(get_python)
+VERSION=$(get_version)
 
-if [ ! -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
+if [ ! -d "/opt/awx-rpm-v2/versions/deps" ]; then
         echo "SPECs for version $VERSION not generated"
         exit 1
 fi
 
-if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS" ]; then
-        if [ "$2" == "force" ] || [ "$1" == "force" ]; then
-                rm -rf "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS"
-        fi
-fi
+FORMAT=$2
 
 cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
 
@@ -26,22 +21,68 @@ NC='\033[0m' # No Color
 BUILT=0
 MISSING=0
 
+BUILDSTATUS=$3
+PACKAGENAME=$4
+TIME=`date`
+
+if [[ "$FORMAT" == "md" ]]; then
+	echo "## Latest build"
+	echo "The lastest package built was $PACKAGENAME"
+	echo
+	echo "The build completed at $TIME"
+	echo
+
+	if [[ "$BUILDSTATUS" == 1 ]]; then
+		echo "The build was successful."
+	else
+		echo "The build was unsuccessful."
+	fi
+
+	echo
+	echo "[Build Log](logs/$PACKAGENAME.log)"
+
+	echo "## Package build status for version: $VERSION"
+	echo "Package | Source RPM | Status | Log"
+	echo ":--- | :--- | :--- | :---"
+
+else
+	echo "Package build status for version: $VERSION"
+fi
+
 for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do 
-	PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed 's/python/python3/g' | sed 's/python33/python3/g')
+	PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed "s/python/python$PYTHONBUILD/g" | sed "s/python$(echo $PYTHONBUILD)3/python$PYTHONBUILD/g")
 	PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
-	PYTHONPACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python/g')
+	PYTHONPACKAGE=$(echo $PACKAGE | sed "s/python$PYTHONBUILD/python$PYTHONBUILD-python/g")
 	PYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
-	PYTHON3PACKAGE=$(echo $PACKAGE | sed 's/python3/python3-python3/g')
+	PYTHON3PACKAGE=$(echo $PACKAGE | sed "s/python$PYTHONBUILD/python$PYTHONBUILD-python3/g")
         PYTHON3PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHON3PACKAGE* 2> /dev/null)
-	ALTPACKAGE=$(echo $PACKAGE | sed 's/python3/python/g')
+	ALTPACKAGE=$(echo $PACKAGE | sed "s/python$PYTHONBUILD/python/g")
 	ALTPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$ALTPACKAGE* 2> /dev/null)
-        if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]] || [[ "$PYTHON3PACKAGEPRESENT" != "" ]] || [[ "$ALTPACKAGEPRESENT" != "" ]]; then
+	GITPYTHON=$(echo $PACKAGE | sed "s/gitpython$(echo $PYTHONBUILD)/gitpython/g")
+	GITPYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$GITPYTHON* 2> /dev/null)
+        if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]] || [[ "$PYTHON3PACKAGEPRESENT" != "" ]] || [[ "$ALTPACKAGEPRESENT" != "" ]] || [[ "$GITPYTHONPACKAGEPRESENT" != "" ]]; then
 		BUILT=$((BUILT+1)) 
-		if [[ "$1" == "all" ]]; then 
-			echo -e "$PACKAGE ${GREEN}Built${NC}"
+		if [[ "$1" == "all" ]]; then
+			if [[ "$FORMAT" == "md" ]]; then
+				if [ -f /opt/awx-rpm-v2/versions/logs/$i.log ]; then
+					echo "$PACKAGE | $i | Built | [Log](logs/$i.log)"
+				else
+					echo "$PACKAGE | $i | Built |"
+				fi
+			else 
+				echo -e "$PACKAGE - $i - ${GREEN}Built${NC}"
+			fi
 		fi 
 	else  
-		echo -e "$PACKAGE ${RED}Missing${NC}"
+		if [[ "$FORMAT" == "md" ]]; then
+			if [ -f /opt/awx-rpm-v2/versions/logs/$i.log ]; then
+				echo "$PACKAGE | $i | **Missing** | [Log](logs/$i.log)"
+			else
+				echo "$PACKAGE | $i | **Missing** |"
+			fi
+		else
+			echo -e "$PACKAGE - $i - ${RED}Missing${NC}"
+		fi
 		MISSING=$((MISSING+1))
 	fi 
 done

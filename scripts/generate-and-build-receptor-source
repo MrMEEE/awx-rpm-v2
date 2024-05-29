@@ -1,18 +1,30 @@
 #!/bin/bash
 
-VERSION=$1
-PACKAGEVERSION=$2
+source $(dirname "$0")/common-functions
+
+VERSION=$(get_version)
+PYTHONBUILD=$(get_python)
+
+DATE=$(date +"%a %b %d %Y %r %Z %z")
+
+PACKAGEVERSION=$1
+
+echo "Generating source and build for receptor version: $PACKAGEVERSION for version: $VERSION"
 
 wget -O /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/receptor-$PACKAGEVERSION.tar.gz https://github.com/ansible/receptor/archive/refs/tags/v$PACKAGEVERSION.tar.gz
 
-cp /opt/awx-rpm-v2/awx-rpm/receptor-temp.spec /opt/awx-rpm-v2/deps/$VERSION/awx-rpm-receptor.spec
-sed -i "s|¤VERSION¤|$PACKAGEVERSION|g" /opt/awx-rpm-v2/deps/$VERSION/awx-rpm-receptor.spec
+cp /opt/awx-rpm-v2/templates/receptor-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
+sed -i "s|¤VERSION¤|$PACKAGEVERSION|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
+sed -i "s/%setup/%setup -n receptor-%{version}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
+sed -i "s|¤DATE¤|$DATE|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
+sed -i "s|¤PYTHON3PKGVERSION¤|$PYTHONBUILD|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
 
-rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/deps/$VERSION/awx-rpm-receptor.spec
+rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm-receptor.spec
 
-mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/receptor-$PACKAGEVERSION-1.el9.src.rpm --rpmbuild-opts="--nocheck" --no-cleanup-after
+mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/awx-receptor-$PACKAGEVERSION-1.el9.src.rpm --rpmbuild-opts="--nocheck" --no-cleanup-after
 rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
 cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
 createrepo_c /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
 rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*
 mock -r epel-9-x86_64 --clean
+

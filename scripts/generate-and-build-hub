@@ -1,0 +1,35 @@
+#!/bin/bash
+
+source $(dirname "$0")/common-functions
+
+TARBALLURL=$(curl -s https://api.github.com/repos/galaxyproject/galaxy/releases/latest |grep tarball_url | cut -f4 -d"\"")
+GALAXYVERSION=$(echo $TARBALLURL | rev | cut -f1 -d"/" | rev)
+GALAXYVERSION=${GALAXYVERSION:1}
+VERSION=$(get_version)
+PYTHONBUILD=$(get_python)
+
+echo $GALAXYVERSION
+
+exit 0
+
+DATE=$(date +"%a %b %d %Y %r %Z %z")
+
+echo "Generating source and build for hub version: $GALAXYVERSION for AWX-RPM version: $VERSION"
+
+wget -O /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/galaxy-hub-$GALAXYVERSION.tar.gz $TARBALLURL
+
+cp /opt/awx-rpm-v2/templates/awx-rpm-hub-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm-hub.spec
+sed -i "s|¤VERSION¤|$GALAXYVERSION|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-hub.spec
+sed -i "s/%setup/%setup -n awx-hub-%{version}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm-hub.spec
+sed -i "s|¤DATE¤|$DATE|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-hub.spec
+sed -i "s|¤PYTHON3PKGVERSION¤|$PYTHONBUILD|g" /opt/awx-rpm-v2/versions/deps/awx-rpm-hub.spec
+
+rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm-hub.spec
+
+mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/awx-hub-$PACKAGEVERSION-1.el9.src.rpm --rpmbuild-opts="--nocheck" --no-cleanup-after
+rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
+cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+createrepo_c /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*
+mock -r epel-9-x86_64 --clean
+

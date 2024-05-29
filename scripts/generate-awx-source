@@ -1,37 +1,67 @@
 #!/bin/bash
 
-VERSION=$(cat /opt/awx-rpm-v2/working-version)
+source $(dirname "$0")/common-functions
+
+VERSION=$(get_version)
+PYTHONBUILD=$(get_python)
+
+DATE=$(date +"%a %b %d %Y %r %Z %z")
+
+echo "Generating source and build for AWX-RPM version: $VERSION"
 
 cd /opt/awx-rpm-v2/
 
-cp /opt/awx-rpm-v2/awx-rpm/*$VERSION* /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/
+cp /opt/awx-rpm-v2/versions/awx-rpm/*$VERSION* /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/
 
-
-#tar zcf /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/awx-$VERSION.tar.gz awx/
+if [[ "$1" != "nosource" ]]; then
+	tar zcf /opt/awx-rpm-v2/rpmbuilds/$VERSION/SOURCES/awx-$VERSION.tar.gz awx/
+fi
 
 cd /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
 
-for i in `ls python* |grep -v debuginfo |grep -v debugsource | grep -v poetry`; do
-	
-	PACKAGENAME=$(echo $i | rev | cut -f3- -d- | rev | cut -f1- -d-)
-	PACKAGEVERSION=$(echo $i | rev | cut -f2 -d- | rev)
-	DEPS=$DEPS$(echo "Requires: $PACKAGENAME = $PACKAGEVERSION\r")
-	BUILDDEPS=$BUILDDEPS$(echo "BuildRequires: $PACKAGENAME = $PACKAGEVERSION\r")
+BUILDVERSION=$(cat /opt/awx-rpm-v2/versions/deps/awx-rpm.spec |grep Release: | awk '{ print $2}' | cut -f1 -d%)
+
+if [[ "$BUILDVERSION" == "" ]];then
+        NEWBUILDVERSION=1
+else
+        let "NEWBUILDVERSION=BUILDVERSION+1"
+fi
+
+echo "" > /var/www/html/AWX-RPM/excludelists/awx-rpm-$VERSION-$NEWBUILDVERSION.el9
+
+for i in `ls python* |grep -v debuginfo |grep -v debugsource | grep -v poetry | grep -v wheel | grep -v awx-rpm-manage`; do
+
+        PACKAGENAME=$(echo $i | rev | cut -f3- -d- | rev | cut -f1- -d-)
+        PACKAGEVERSION=$(echo $i | rev | cut -f2 -d- | rev)
+        DEPS=$DEPS$(echo "Requires: $PACKAGENAME = $PACKAGEVERSION\r")
+        BUILDDEPS=$BUILDDEPS$(echo "BuildRequires: $PACKAGENAME = $PACKAGEVERSION\r")
+	echo $PACKAGENAME >> /var/www/html/AWX-RPM/excludelists/awx-rpm-$VERSION-$NEWBUILDVERSION.el9
+done
+
+RHELDEPS="Requires: "
+
+for i in `cat /opt/awx-rpm-v2/versions/deps/rhel-deps.txt`; do
+
+	RHELDEPS=$RHELDEPS$(echo $i | sed "s/python-/python$PYTHONBUILD-/g")" "
+	echo $i | sed "s/python-/python3-/g" >> /var/www/html/AWX-RPM/excludelists/awx-rpm-$VERSION-$NEWBUILDVERSION.el9
 
 done
 
-BUILDVERSION=$(cat /opt/awx-rpm-v2/awx-rpm/awx-rpm-temp.spec |grep Release: | awk '{ print $2}' | cut -f1 -d%)
+DEPS=$DEPS$RHELDEPS
+BUILDDEPS=$BUILDDEPS$"Build"$RHELDEPS
+LASTVERSION=$(cd /opt/awx-rpm-v2/versions/ && git branch | sed 's/*/ /g' |grep -B 1 "$VERSION" | head -1)
+CHANGELOG=$(cd /opt/awx-rpm-v2/awx/ && git log --oneline --decorate $LASTVERSION..$VERSION | cut -d" " -f2- | sed -e "s/^/- /g" | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/\$/\\$/g')
+cp /opt/awx-rpm-v2/templates/awx-rpm-temp.spec /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
-let "NEWBUILDVERSION=BUILDVERSION+1"
+sed -i "s/Release:.*$/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
-sed -i "s/Release: $BUILDVERSION%{dist}/Release: $NEWBUILDVERSION%{dist}/g" /opt/awx-rpm-v2/awx-rpm/awx-rpm-temp.spec
+sed -i "s|¤BUILDREQUIRES¤|$BUILDDEPS|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s|¤REQUIRES¤|$DEPS|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s|¤VERSION¤|$VERSION|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s|¤DATE¤|$DATE|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s|¤CHANGELOG¤|$CHANGELOG|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s|¤PYTHON3PKGVERSION¤|$PYTHONBUILD|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
+sed -i "s|\r|\n|g" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 
-cp /opt/awx-rpm-v2/awx-rpm/awx-rpm-temp.spec /opt/awx-rpm-v2/deps/$VERSION/awx-rpm.spec
-
-sed -i "s|¤BUILDREQUIRES¤|$BUILDDEPS|g" /opt/awx-rpm-v2/deps/$VERSION/awx-rpm.spec
-sed -i "s|¤REQUIRES¤|$DEPS|g" /opt/awx-rpm-v2/deps/$VERSION/awx-rpm.spec
-sed -i "s|¤VERSION¤|$VERSION|g" /opt/awx-rpm-v2/deps/$VERSION/awx-rpm.spec
-sed -i "s|\r|\n|g" /opt/awx-rpm-v2/deps/$VERSION/awx-rpm.spec
-
-rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/deps/$VERSION/awx-rpm.spec
+rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" /opt/awx-rpm-v2/versions/deps/awx-rpm.spec
 

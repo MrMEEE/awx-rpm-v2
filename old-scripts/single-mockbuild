@@ -1,0 +1,54 @@
+#!/bin/bash
+
+VERSION=$(cat /opt/awx-rpm-v2/working-version)
+ARG1=$1
+ARG2=$2
+
+if [ "${ARG1: -3}" == "el9" ];then
+	RPMPACKAGE=$1
+elif [ ! -z $1 ] && [ "$1" != "force" ];then
+        VERSION=$1
+fi
+
+if [ "${ARG2: -3}" == "el9" ];then
+        RPMPACKAGE=$2
+fi
+
+if [ ! -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
+        echo "SPECs for version $VERSION not generated"
+        exit 1
+fi
+
+SRPM=$(echo $RPMPACKAGE | sed 's/python3/python/g' | sed 's/noarch/src/g').src.rpm
+
+if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM" ];then
+	SRPMALT=$(echo $SRPM |sed 's/python/python3/g')
+	if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPMALT" ];then
+		echo "Source file: /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM, doesn't exist.."
+		exit 2
+	else
+		SRPM=$SRPMALT
+	fi
+fi
+
+PACKAGEVERSION=$(echo $SRPM | rev | cut -f2 -d- | rev)
+PACKAGENAME=$(echo $SRPM | rev | cut -f3- -d- | rev | cut -f2- -d-)
+
+/opt/awx-rpm-v2/scripts/buildsrc $VERSION $PACKAGENAME
+
+mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+
+cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+
+mock -r epel-9-x86_64 --clean
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64 /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPM --rpmbuild-opts="--nocheck" --no-cleanup-after
+rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm
+cp /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+createrepo_c /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/
+rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*
+mock -r epel-9-x86_64 --clean

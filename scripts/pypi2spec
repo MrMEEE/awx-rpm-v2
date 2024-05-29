@@ -1,66 +1,51 @@
 #!/bin/bash
 
-if [ -z "$1" ]; then
-	echo "Please provide AWX version"
-	exit 1
-fi
+source $(dirname "$0")/common-functions
 
-VERSION=$1
-PACKAGE=$2
-PACKAGEVERSION=$3
+VERSION=$(get_version)
+
+echo "Generating SPECs for version $VERSION"
+
+PACKAGE=$1
+PACKAGEVERSION=$2
 
 cd /opt/awx-rpm-v2/awx/
 
-git checkout -q devel
+git stash
+git checkout -f -q devel
 git pull -q
 
-if [ `git tag |grep $VERSION$` ]; then
+if [ `git tag |grep $VERSION` ]; then
 	git -c advice.detachedHead=false checkout -q $VERSION
 else
 	echo "Version $VERSION doesn't exist"
+	exit 1
 fi
 
+mkdir -p /opt/awx-rpm-v2/versions/deps
 
-echo "Setting current version to $VERSION"
+cat /opt/awx-rpm-v2/awx/requirements/requirements.txt | grep -v "#" > /opt/awx-rpm-v2/versions/deps/requirements.txt
 
-echo "$VERSION" > /opt/awx-rpm-v2/working-version
-
-
-if [ -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
-	if [[ $2 == "force" ]] ; then
-		rm -rf "/opt/awx-rpm-v2/deps/$VERSION"
-	elif [[ $2 == "" ]]; then
-		echo "Version is already created, force to overwrite"
-		exit 1
-	else
-		echo "Adding package $PACKAGE $VERSION"
-	fi
-fi
-
-mkdir -p /opt/awx-rpm-v2/deps/$VERSION
-
-cat /opt/awx-rpm-v2/awx/requirements/requirements.txt | grep -v "#" > /opt/awx-rpm-v2/deps/$VERSION/requirements.txt
-
-cd /opt/awx-rpm-v2/deps/$VERSION
-
+cd /opt/awx-rpm-v2/versions/deps/
+mkdir -p /opt/awx-rpm-v2/versions/deps/original
 if [[ $PACKAGE == "" ]];then
-	for i in `cat /opt/awx-rpm-v2/deps/$VERSION/requirements.txt | sed 's/\[.*\]//'`;do 
+	for i in `cat /opt/awx-rpm-v2/versions/deps/requirements.txt | sed 's/\[.*\]//'`;do 
 		PACKAGE=$(echo $i | cut -f1 -d"=") 
 		PACKAGEVERSION=$(echo $i | cut -f3 -d"=")
 		echo "Generating SPEC-file for $PACKAGE version $PACKAGEVERSION"
-		pyp2spec --license gpl -v $PACKAGEVERSION $PACKAGE 
+		pyp2spec -p 3.11 --license gpl -v $PACKAGEVERSION $PACKAGE 
+		cp /opt/awx-rpm-v2/versions/deps/*$PACKAGE.spec /opt/awx-rpm-v2/versions/deps/*$PACKAGE.conf /opt/awx-rpm-v2/versions/deps/original/
 	done
 else
         if [[ $PACKAGEVERSION == "" ]];then
 		echo "Generating SPEC-file for $PACKAGE"
-        	pyp2spec --license gpl $PACKAGE
+        	pyp2spec -p 3.11 --license gpl $PACKAGE
+		cp /opt/awx-rpm-v2/versions/deps/*$PACKAGE.spec /opt/awx-rpm-v2/versions/deps/*$PACKAGE.conf /opt/awx-rpm-v2/versions/deps/original/
 	else
 		echo "Generating SPEC-file for $PACKAGE version $PACKAGEVERSION"
-	        pyp2spec --license gpl -v $PACKAGEVERSION $PACKAGE
+	        pyp2spec -p 3.11 --license gpl -v $PACKAGEVERSION $PACKAGE
+		cp /opt/awx-rpm-v2/versions/deps/*$PACKAGE.spec /opt/awx-rpm-v2/versions/deps/*$PACKAGE.conf /opt/awx-rpm-v2/versions/deps/original/
 	fi
 fi
 
-mkdir -p /opt/awx-rpm-v2/deps/$VERSION/original
-
-cp /opt/awx-rpm-v2/deps/$VERSION/python-$PACKAGE.spec /opt/awx-rpm-v2/deps/$VERSION/python-$PACKAGE.conf /opt/awx-rpm-v2/deps/$VERSION/original/
 

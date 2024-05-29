@@ -13,8 +13,7 @@ else
 	FILENAME=python-$PACKAGENAME
 fi
 
+sed -i "/^%pyproject_extras_subpkg/d" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+sed -i "s/^%pyproject_buildrequires.*/%pyproject_buildrequires/g" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
 
-
-sed -i '1i%global debug_package %{nil}' /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
-
-/opt/awx-rpm-v2/new-scripts/buildsrc $FILENAME
+/opt/awx-rpm-v2/scripts/buildsrc $FILENAME

@@ -1,9 +1,12 @@
 #!/bin/bash
 
-source $(dirname "$0")/common-functions
+VERSION=$(cat /opt/awx-rpm-v2/working-version)
+PACKAGE=$2
 
-VERSION=$(get_version)
-PACKAGE=$1
+if [ ! -z $1 ];then
+	VERSION=$1
+	/opt/awx-rpm-v2/scripts/changeversion $VERSION
+fi
 
 if [ ! -d "/opt/awx-rpm-v2/versions/deps/original" ]; then
 	echo "SPECs for version $VERSION not generated"

@@ -90,9 +90,9 @@ git commit -qam "Created Version $NEWVERSION"
 
 git push -u origin $NEWVERSION
 
-/opt/awx-rpm-v2/new-scripts/changeversion $NEWVERSION
+/opt/awx-rpm-v2/scripts/changeversion $NEWVERSION
 
-/opt/awx-rpm-v2/new-scripts/pypi2spec
+/opt/awx-rpm-v2/scripts/pypi2spec
 for i in `cat /opt/awx-rpm-v2/migration/extra-deps.txt`; do
 
 	PACKAGENAME=$(echo $i | cut -f1 -d=)
@@ -100,9 +100,9 @@ for i in `cat /opt/awx-rpm-v2/migration/extra-deps.txt`; do
 	
 	echo "Adding package $PACKAGENAME $VERSION"
 	if [[ "$PACKAGENAME" == "$VERSION" ]];then
-		/opt/awx-rpm-v2/new-scripts/addpackage $PACKAGENAME nobuild
+		/opt/awx-rpm-v2/scripts/addpackage $PACKAGENAME nobuild
 	else 
-		/opt/awx-rpm-v2/new-scripts/addpackage $PACKAGENAME $VERSION nobuild
+		/opt/awx-rpm-v2/scripts/addpackage $PACKAGENAME $VERSION nobuild
 	fi
 
 done
@@ -128,9 +128,9 @@ git add /opt/awx-rpm-v2/versions/*
 git commit -qam "Imported from version $FROMVERSION to version $NEWVERSION"
 git push
 
-/opt/awx-rpm-v2/new-scripts/getsources
+/opt/awx-rpm-v2/scripts/getsources
 
 echo "Applying patches from version: $FROMVERSION"
 
-/opt/awx-rpm-v2/new-scripts/applypatches
+/opt/awx-rpm-v2/scripts/applypatches
 

@@ -1,23 +1,17 @@
 #!/bin/bash
+source $(dirname "$0")/common-functions
 
-VERSION=$(cat /opt/awx-rpm-v2/working-version)
+VERSION=$(get_version)
 
-ARG1=$1
-ARG2=$2
+PACKAGE=$1
 
-if [ ! -z $1 ] && [ "$1" != "force" ];then
-        VERSION=$1
-fi
-
-if [ ! -d "/opt/awx-rpm-v2/deps/$VERSION" ]; then
+if [ ! -d "/opt/awx-rpm-v2/versions/deps" ]; then
         echo "SPECs for version $VERSION not generated"
         exit 1
 fi
 
-echo "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS"
-
-if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS" ] && [ "ARG2" == "" ]; then
-	if [ "$2" != "force" ] && [ "$1" != "force" ]; then
+if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS" ] && [ "$PACKAGE" == "" ]; then
+	if [ "$PACKAGE" != "force" ]; then
 		echo "SRPMs already generated, apply force to regenerate"
 		exit
 	else
@@ -25,14 +19,14 @@ if [ -d "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS" ] && [ "ARG2" == "" ]; then
 	fi 
 fi
 
-cd "/opt/awx-rpm-v2/deps/$VERSION"
+cd "/opt/awx-rpm-v2/versions/deps/"
 
-if [ ! -z ${ARG2+x} ];then
-	echo "Building SRPM for $ARG2 for version $VERSION"
-	if [ -f $2.spec ];then
-                rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $2.spec
+if [[ ${PACKAGE} != "" ]] && [[ ${PACKAGE} != "force" ]];then
+	echo "Building SRPM for $PACKAGE for version $VERSION"
+	if [ -f $PACKAGE.spec ];then
+                rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $PACKAGE.spec
         else
-		rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" python-$2.spec
+		rpmbuild -bs --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" python-$PACKAGE.spec
 	fi
 	exit 0
 fi
