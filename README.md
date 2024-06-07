@@ -10,7 +10,14 @@ Inventory can be configured in ansible/inventory and is documented within the fi
 
 ---
 
-Update: 24-05-2025
+Update: 07-06-2024
+
+* AWX-RPM 24.5.0 Released
+* Introduced some AWX-RPM branding 
+
+---
+
+Update: 24-05-2024
 
 * AWX-RPM 24.4.0 Released
 * Fixed issue with settings.py being overriden during update

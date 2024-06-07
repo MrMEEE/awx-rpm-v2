@@ -33,6 +33,8 @@ Source32: receptor-worker.conf-%{version}
 Source40: awx-rpm-logo.svg-%{version}
 Source8: awx-rpm-nginx.conf-%{version}
 Patch0: awx-patch.patch-%{version}
+Patch1: awx-rpm-extract-strings.patch-%{version}
+Patch2: awx-rpm-branding.patch-%{version}
 License: GPLv3
 Group: AWX
 URL: https://awx.wiki
@@ -57,6 +59,8 @@ Requires: python%{python3_pkgversion} nodejs >= 18 npm gettext git nginx redis x
 git checkout -f devel
 git checkout -f %{version}
 %patch0 -p0
+%patch1 -p0
+%patch2 -p0
 
 %build
 
