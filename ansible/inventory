@@ -1,6 +1,6 @@
 [all:vars]
 # Choose AWX-RPM to Install
-awx_rpm_version=24.5.0
+awx_rpm_version=24.6.0
 # Admin user to be created during the installation
 awx_rpm_user=admin
 # Password for the admin user
