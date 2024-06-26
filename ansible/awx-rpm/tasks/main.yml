@@ -94,6 +94,12 @@
   become: true
   when: ansible_facts['distribution'] == 'RedHat' 
 
+- name: Enable a CRB repository
+  ansible.builtin.command: /usr/bin/crb enable
+  when: ansible_distribution == 'AlmaLinux' or ansible_distribution == 'Rocky'
+  register: cbr
+  changed_when: cbr.rc == 0
+
 - name: Install AWX-RPM
   ansible.builtin.dnf:
     name: awx-rpm
