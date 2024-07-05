@@ -1,6 +1,6 @@
 [all:vars]
 # Choose AWX-RPM to Install
-awx_rpm_version=24.6.0
+awx_rpm_version=24.6.1
 # Admin user to be created during the installation
 awx_rpm_user=admin
 # Password for the admin user
@@ -15,8 +15,8 @@ awx_rpm_dbname=awx
 awx_rpm_dbhost=127.0.0.1
 # Optional choose an external database. This is also required for a setup with multiple AWX-RPMs for HA
 awx_rpm_external_db=false
-# Use postgresql 15, supported from 24.0.0
-awx_use_postgresql15=false
+# Use postgresql 15, supported from 24.0.0,,required from 24.6.1
+awx_use_postgresql15=true
 # Configure allowed hostnames
 # awx_rpm_allowedhosts='["hostname1.domain.pub", "hostname2.domain.local"]'
 

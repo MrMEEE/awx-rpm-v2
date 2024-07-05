@@ -36,7 +36,7 @@ build_rpm () {
 	
 	echo "Building Package $1, saving output to /opt/awx-rpm-v2/versions/logs/$1.log"
 	# Legacy repo for AWX-RPM < 24.1.0: --addrepo=https://download.copr.fedorainfracloud.org/results/@copr/PyPI/epel-9-x86_64
-	unbuffer mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/ --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$1 --rpmbuild-opts="--nocheck" --no-cleanup-after &> /opt/awx-rpm-v2/versions/logs/$1.log
+	unbuffer mock -r epel-9-x86_64 --enable-network --addrepo /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/ --resultdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/ --no-clean /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$1 --rpmbuild-opts="--nocheck" --no-cleanup-after | tee /opt/awx-rpm-v2/versions/logs/$1.log > /opt/awx-rpm-v2/versions/logs/currentbuild.log
 	if ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.rpm 1> /dev/null 2>&1; then
 		echo -e "${GREEN}Build succeeded.${NC}"
 		rm -f /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS-TMP/*.src.rpm

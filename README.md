@@ -8,6 +8,14 @@ An ansible playbook for installation is provided in ansible/
 
 Inventory can be configured in ansible/inventory and is documented within the file.
 
+
+---
+
+Update: 06-07-2024
+
+* AWX-RPM 24.6.1 Released
+* PostgreSQL 15 is now required, see https://awx.wiki/upgrade for upgrading
+
 ---
 
 Update: 23-06-2024
