@@ -10,8 +10,9 @@ Inventory can be configured in ansible/inventory and is documented within the fi
 
 ## BYO (Build Your Own)
 
-Documentation on setting up a build environment: [docs/build]
-Documentation on moving from one release to the next: [docs/generate-new-version]
+Documentation on setting up a build environment: (docs/build)
+
+Documentation on moving from one release to the next: (docs/generate-new-version)
 
 ---
 
