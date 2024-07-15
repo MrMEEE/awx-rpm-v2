@@ -29,3 +29,5 @@ EOF
 git clone $AWXRPMREPO /opt/awx-rpm-v2
 git clone $VERSIONREPO /opt/awx-rpm-v2/versions
 git clone https://github.com/ansible/awx/ /opt/awx-rpm-v2/awx
+cd /opt/awx-rpm-v2/versions
+for remote in `git branch -r |grep -v HEAD`; do git branch --track $remote; done
