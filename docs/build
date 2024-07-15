@@ -1,0 +1,97 @@
+This is something that I just haven't gotten around to describing.. So I might need some feedback.. Please tell me if you hit any issues:
+
+I have created a bootstrap script.. use it if you will, or implement manually
+
+https://github.com/MrMEEE/awx-rpm-v2/blob/main/docs/bootstrap-build.sh
+
+from there, use the changeversion script to change into the version you want to build:
+
+./changeversion 24.6.1
+
+This uses the spec files that I have created..
+
+From here, run getsources, to fetch the source code for the python packages:
+
+./getsources
+
+Now that you have the sources, build the source RPMS:
+
+./buildsrc
+
+Now you should be ready to build all the dependencies.. run the mockbuilds:
+
+./mockbuild
+
+This will take quite a while.. 
+
+You can check status with:
+
+./checkbuilds
+
+and get hints to fixing errors with:
+
+./geterrors
+
+when you have all the dependencies built, you have to build receptor
+
+./generate-and-build-receptor-source <VERSION>
+
+I have had issues build 1.4.8.. so go with 1.4.7 (or find the issue)
+
+When receptor is built, it's finally time for generate the AWX-RPM SRPM:
+
+./generate-awx-source
+
+and then build it with single-mockbuild
+
+Hope it makes sense.. 
+
+This is something that I just haven't gotten around to describing.. So I might need some feedback.. Please tell me if you hit any issues:
+
+I have created a bootstrap script.. use it if you will, or implement manually
+
+https://github.com/MrMEEE/awx-rpm-v2/blob/main/docs/bootstrap-build.sh
+
+from there, use the changeversion script to change into the version you want to build:
+
+./changeversion 24.6.1
+
+This uses the spec files that I have created..
+
+From here, run getsources, to fetch the source code for the python packages:
+
+./getsources
+
+Now that you have the sources, build the source RPMS:
+
+./buildsrc
+
+Now you should be ready to build all the dependencies.. run the mockbuilds:
+
+./mockbuild
+
+This will take quite a while.. 
+
+You can check status with:
+
+./checkbuilds
+
+and get hints to fixing errors with:
+
+./geterrors
+
+when you have all the dependencies built, you have to build receptor
+
+./generate-and-build-receptor-source <VERSION>
+
+I have had issues build 1.4.8.. so go with 1.4.7 (or find the issue)
+
+When receptor is built, it's finally time for generate the AWX-RPM SRPM:
+
+./generate-awx-source
+
+and then build it with single-mockbuild
+
+Hope it makes sense.. 
+
+
