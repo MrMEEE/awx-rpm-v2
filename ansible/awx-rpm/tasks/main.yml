@@ -81,20 +81,20 @@
       disable_gpg_check: true
     become: true
     when: awx_rpm_enable_centos
+
+  - name: Enable a RHSM repository
+    community.general.rhsm_repository:
+      name: codeready-builder-for-rhel-9-x86_64-rpms
+    become: true
+    when: ansible_facts['distribution'] == 'RedHat' 
+
+  - name: Enable a CRB repository
+    ansible.builtin.command: /usr/bin/crb enable
+    when: ansible_distribution == 'AlmaLinux' or ansible_distribution == 'Rocky'
+    register: cbr
+    changed_when: cbr.rc == 0
   
   when: awx_rpm_offline_install != true
-
-- name: Enable a RHSM repository
-  community.general.rhsm_repository:
-    name: codeready-builder-for-rhel-9-x86_64-rpms
-  become: true
-  when: ansible_facts['distribution'] == 'RedHat' 
-
-- name: Enable a CRB repository
-  ansible.builtin.command: /usr/bin/crb enable
-  when: ansible_distribution == 'AlmaLinux' or ansible_distribution == 'Rocky'
-  register: cbr
-  changed_when: cbr.rc == 0
 
 - name: Install AWX-RPM
   ansible.builtin.dnf:

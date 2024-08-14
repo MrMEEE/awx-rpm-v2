@@ -27,7 +27,12 @@ awx_use_postgresql15=true
 # awx_rpm_allowedhosts='["hostname1.domain.pub", "hostname2.domain.local"]'
 
 # Disable external requirements
+# You will manually need to provide:
+# 1. Access to the EPEL Repository
+# 2. Access to the AWX-RPM Repository
+# 3. Access to the Codeready builder Repository
 awx_rpm_offline_install=false
+
 # Enable external CentOS repo, ignored if awx_rpm_offline_install=true
 awx_rpm_enable_centos=true
 
