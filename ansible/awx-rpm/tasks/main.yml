@@ -64,29 +64,25 @@
   become: true
   when: ansible_facts.selinux.status == 'enabled'
 
-- name: Add the AWX-RPM repository
-  ansible.builtin.yum_repository:
-    name: awx-rpm-{{ awx_rpm_version }}
-    description: awx-rpm repository
-    baseurl: https://rpm.awx.wiki/AWX-RPM/{{ awx_rpm_version }}/
-    gpgcheck: true
-    gpgkey: https://rpm.awx.wiki/AWX-RPM/RPM-GPG-KEY-awx-rpm
-  become: true
+- block:
+  - name: Add the AWX-RPM repository
+    ansible.builtin.yum_repository:
+      name: awx-rpm-{{ awx_rpm_version }}
+      description: awx-rpm repository
+      baseurl: https://rpm.awx.wiki/AWX-RPM/{{ awx_rpm_version }}/
+      gpgcheck: true
+      gpgkey: https://rpm.awx.wiki/AWX-RPM/RPM-GPG-KEY-awx-rpm
+    become: true
 
-- name: Enable the PYPI RPM repo
-  community.general.copr:
-    host: copr.fedorainfracloud.org
-    state: enabled
-    name: '@copr/PyPI'
-    chroot: epel-9-x86_64
-  become: true
-
-- name: Enable EPEL
-  ansible.builtin.dnf:
-    name: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm'
-    state: present
-    disable_gpg_check: true
-  become: true
+  - name: Enable EPEL
+    ansible.builtin.dnf:
+      name: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm'
+      state: present
+      disable_gpg_check: true
+    become: true
+    when: awx_rpm_enable_centos
+  
+  when: awx_rpm_offline_install != true
 
 - name: Enable a RHSM repository
   community.general.rhsm_repository:
@@ -125,14 +121,12 @@
       mode: '0644'
     become: true
 
-
   - name: Start and enable PostgreSQL
     ansible.builtin.service:
       name: postgresql
       state: started
       enabled: true
     become: true
-
 
   - name: Create User and database for AWX-RPM
     ansible.builtin.shell: "{{ item }}"
