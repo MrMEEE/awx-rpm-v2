@@ -14,7 +14,7 @@ Documentation on setting up a build environment: [Build](docs/build)
 
 Documentation on moving from one release to the next: [New version](docs/generate-new-version)
 
----
+## Updates
 
 Update: 06-07-2024
 
