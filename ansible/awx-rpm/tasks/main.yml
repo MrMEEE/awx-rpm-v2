@@ -7,12 +7,6 @@
   become: true
   when: ansible_facts.selinux.status == 'enabled'
 
-- name: Enable
-  ansible.builtin.dnf:
-    name: '@postgresql:15'
-    state: present
-  when: awx_use_postgresql15
-
 - name: Put SELinux in permissive mode, TOOD, Re-enable
   ansible.posix.selinux:
     policy: targeted
@@ -101,14 +95,22 @@
     name: awx-rpm
     state: latest
   become: true
-
+  
 - block:
+  - name: Enable
+    ansible.builtin.dnf:
+      name: '@postgresql:15'
+      state: present
+    when: awx_use_postgresql15
+  
   - name: Install PostgreSQL
     ansible.builtin.dnf:
       name: postgresql-server
       state: present
     become: true
+  when: awx_rpm_external_db|bool == 1 and awx_rpm_install_postgres|bool == 1
 
+- block:
   - name: Initialize Postgres Database
     ansible.builtin.shell: /usr/bin/postgresql-setup --initdb
     become: true
@@ -138,7 +140,7 @@
     become_user: postgres
     ignore_errors: true
 
-  when: not awx_rpm_external_db|bool
+  when: awx_rpm_external_db|bool == 1
 
 - name: Install AWX-RPM Settings
   ansible.builtin.template:
