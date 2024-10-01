@@ -108,7 +108,7 @@
       name: postgresql-server
       state: present
     become: true
-  when: awx_rpm_external_db|bool == 1 and awx_rpm_install_postgres|bool == 1
+  when: awx_rpm_install_postgres|bool == 1
 
 - block:
   - name: Initialize Postgres Database
@@ -140,7 +140,7 @@
     become_user: postgres
     ignore_errors: true
 
-  when: awx_rpm_external_db|bool == 1
+  when: awx_rpm_external_db|bool == 0
 
 - name: Install AWX-RPM Settings
   ansible.builtin.template:
