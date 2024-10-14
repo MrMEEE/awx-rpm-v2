@@ -28,6 +28,16 @@ awx_rpm_install_postgres=true
 # Configure allowed hostnames
 # awx_rpm_allowedhosts='["hostname1.domain.pub", "hostname2.domain.local"]'
 
+# Configure friendlyname for certificates, allowedhosts and towerurlbase
+#friendlyname=hostname.domain.pub
+
+#Change default webserver port
+#nginx_ssl_port=443
+
+# Change certificates
+# certificates should reside in same folder as this playbook with name as above {{friendlyname}}.crt and {{friendlyname}}.key
+use_custom_certs=false
+
 # Disable external requirements
 # You will manually need to provide:
 # 1. Access to the EPEL Repository
