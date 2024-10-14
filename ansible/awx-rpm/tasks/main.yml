@@ -215,21 +215,21 @@
 - block:
   - name: Copy certificate
     ansible.builtin.copy:
-      src: "{{ friendlyname }}.crt"
-      dest: /etc/pki/tls/certs/{{ friendlyname }}.crt
+      src: "{{ awx_rpm_fqdn }}.crt"
+      dest: /etc/pki/tls/certs/{{ awx_rpm_fqdn }}.crt
   - name: Copy key
     ansible.builtin.copy:
-      src: "{{ friendlyname }}.key"
-      dest: /etc/pki/tls/private/{{ friendlyname }}.key
+      src: "{{ awx_rpm_fqdn }}.key"
+      dest: /etc/pki/tls/private/{{ awx_rpm_fqdn }}.key
   - name: Change certificate paths
     ansible.builtin.lineinfile:
       path: /etc/nginx/conf.d/awx-rpm.conf
       regexp: "{{ item.regexp }}"
       line: "{{ item.line }}"
     with_items:
-     - { regexp: '/etc/nginx/nginx.crt', line: '    ssl_certificate /etc/pki/tls/certs/{{ friendlyname }}.crt;' }
-     - { regexp: '/etc/nginx/nginx.key', line: '    ssl_certificate_key /etc/pki/tls/private/{{ friendlyname }}.key;' }
-  when: use_custom_certs|bool
+     - { regexp: '/etc/nginx/nginx.crt', line: '    ssl_certificate /etc/pki/tls/certs/{{ awx_rpm_fqdn }}.crt;' }
+     - { regexp: '/etc/nginx/nginx.key', line: '    ssl_certificate_key /etc/pki/tls/private/{{ awx_rpm_fqdn }}.key;' }
+  when: nginx_use_custom_certs|bool
 
 - name: Change nginx listening port to the configured one
   ansible.builtin.lineinfile:
@@ -263,7 +263,7 @@
 - ansible.builtin.pause:
     seconds: 30
 
-- name: Use friendlyname to set some setting in Tower
+- name: Use awx_rpm_fqdn to set some setting in Tower
   awx.awx.settings:
     name: "{{item.name}}"
     value: "{{item.value}}"
@@ -272,8 +272,8 @@
     tower_password: "{{ awx_rpm_password }}"
     validate_certs: no  
   loop:
-   - {name: 'TOWER_URL_BASE', value: "https://{{ friendlyname }}:{{nginx_ssl_port | default ('8043')}}"}
-   - {name: 'CSRF_TRUSTED_ORIGINS', value: "[https://{{ friendlyname }}:{{nginx_ssl_port | default ('8043')}}]"}
-  # - {name: 'ALLOWED_HOSTS', value: "[ '{{ friendlyname }}' ]"}
-  when: friendlyname is defined
+   - {name: 'TOWER_URL_BASE', value: "https://{{ awx_rpm_fqdn }}:{{nginx_ssl_port | default ('8043')}}"}
+   - {name: 'CSRF_TRUSTED_ORIGINS', value: "[https://{{ awx_rpm_fqdn }}:{{nginx_ssl_port | default ('8043')}}]"}
+  # - {name: 'ALLOWED_HOSTS', value: "[ '{{ awx_rpm_fqdn }}' ]"}
+  when: awx_rpm_fqdn is defined
 
