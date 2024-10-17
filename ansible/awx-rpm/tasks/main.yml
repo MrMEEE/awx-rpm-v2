@@ -14,9 +14,9 @@
   become: true
   when: ansible_facts.selinux.status == 'enabled'
 
-- name: Allow NGINX to listen on tcp port 8043
+- name: Allow NGINX to listen on ssl 
   community.general.seport:
-    ports: 8043
+    ports: "{{ nginx_ssl_port | default ('8043') }}"
     proto: tcp
     setype: http_port_t
     state: present
@@ -212,6 +212,34 @@
       unixsocketperm 770
   become: true
 
+- block:
+  - name: Copy certificate
+    ansible.builtin.copy:
+      src: "{{ awx_rpm_fqdn }}.crt"
+      dest: /etc/pki/tls/certs/{{ awx_rpm_fqdn }}.crt
+  - name: Copy key
+    ansible.builtin.copy:
+      src: "{{ awx_rpm_fqdn }}.key"
+      dest: /etc/pki/tls/private/{{ awx_rpm_fqdn }}.key
+  - name: Change certificate paths
+    ansible.builtin.lineinfile:
+      path: /etc/nginx/conf.d/awx-rpm.conf
+      regexp: "{{ item.regexp }}"
+      line: "{{ item.line }}"
+    with_items:
+     - { regexp: '/etc/nginx/nginx.crt', line: '    ssl_certificate /etc/pki/tls/certs/{{ awx_rpm_fqdn }}.crt;' }
+     - { regexp: '/etc/nginx/nginx.key', line: '    ssl_certificate_key /etc/pki/tls/private/{{ awx_rpm_fqdn }}.key;' }
+  when: nginx_use_custom_certs|bool
+
+- name: Change nginx listening port to the configured one
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/conf.d/awx-rpm.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: 'listen 8043 default_server ssl;', line: 'listen {{ nginx_ssl_port }} default_server ssl;' }
+  when: nginx_ssl_port is defined
+
 - name: Start and enable services
   ansible.builtin.service:
     name: "{{ item }}"
@@ -231,3 +259,21 @@
     - awx-wsrelay.service
     - awx-ws-heartbeat.service
   become: true
+
+- ansible.builtin.pause:
+    seconds: 30
+
+- name: Use awx_rpm_fqdn to set some setting in Tower
+  awx.awx.settings:
+    name: "{{item.name}}"
+    value: "{{item.value}}"
+    tower_host: "https://{{ ansible_host }}:{{nginx_ssl_port | default ('8043')}}"
+    tower_username: "{{ awx_rpm_user }}"
+    tower_password: "{{ awx_rpm_password }}"
+    validate_certs: no  
+  loop:
+   - {name: 'TOWER_URL_BASE', value: "https://{{ awx_rpm_fqdn }}:{{nginx_ssl_port | default ('8043')}}"}
+   - {name: 'CSRF_TRUSTED_ORIGINS', value: "[https://{{ awx_rpm_fqdn }}:{{nginx_ssl_port | default ('8043')}}]"}
+  # - {name: 'ALLOWED_HOSTS', value: "[ '{{ awx_rpm_fqdn }}' ]"}
+  when: awx_rpm_fqdn is defined
+
