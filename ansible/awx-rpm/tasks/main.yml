@@ -88,7 +88,7 @@
     register: cbr
     changed_when: cbr.rc == 0
   
-  when: awx_rpm_offline_install != true
+  when: not awx_rpm_offline_install
 
 - name: Install AWX-RPM
   ansible.builtin.dnf:
