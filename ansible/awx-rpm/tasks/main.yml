@@ -88,7 +88,7 @@
     register: cbr
     changed_when: cbr.rc == 0
   
-  when: awx_rpm_offline_install != true
+  when: not awx_rpm_offline_install
 
 - name: Install AWX-RPM
   ansible.builtin.dnf:
@@ -114,7 +114,9 @@
   - name: Initialize Postgres Database
     ansible.builtin.shell: /usr/bin/postgresql-setup --initdb
     become: true
-    ignore_errors: true
+    register: postgres_init
+    changed_when: postgres_init.rc == 0
+    failed_when: not ((postgres_init.rc == 1 and "is not empty!" in postgres_init.stderr) or postgres_init.rc == 0)
 
   - name: Install postgres configuration
     ansible.builtin.copy:
@@ -138,7 +140,9 @@
       - psql -c "ALTER USER awx WITH PASSWORD '{{ awx_rpm_dbpass }}'";
     become: true
     become_user: postgres
-    ignore_errors: true
+    register: postgres_user
+    changed_when: postgres_user.rc == 0
+    failed_when: not ((postgres_user.rc == 1 and "already exists" in postgres_user.stderr) or postgres_user.rc == 0)
 
   when: awx_rpm_external_db|bool == 0
 
