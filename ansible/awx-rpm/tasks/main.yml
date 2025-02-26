@@ -74,7 +74,7 @@
       state: present
       disable_gpg_check: true
     become: true
-    when: awx_rpm_enable_centos
+    when: awx_rpm_enable_epel
 
   - name: Enable a RHSM repository
     community.general.rhsm_repository:

@@ -45,8 +45,8 @@ nginx_use_custom_certs=false
 # 3. Access to the Codeready builder Repository
 awx_rpm_offline_install=false
 
-# Enable external CentOS repo, ignored if awx_rpm_offline_install=true
-awx_rpm_enable_centos=true
+# Enable external EPEL repo, ignored if awx_rpm_offline_install=true
+awx_rpm_enable_epel=true
 
 [awx-rpm]
 10.0.0.1  ansible_user=root ansible_password=xxxxxxxx
