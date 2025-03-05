@@ -1,24 +1,52 @@
 [all:vars]
 # Choose AWX-RPM to Install
 awx_rpm_version=30.0.0
+
 # Admin user to be created during the installation
 awx_rpm_user=admin
+
 # Password for the admin user
 awx_rpm_password=password
+
 # Set password for the admin user
 awx_rpm_email=root@localhost
+
 # Configure the database credentials for the installation to use
 # If awx_rpm_external_db=false, a postgresql database will be installed and configured with the values defined
 awx_rpm_dbuser=awx
 awx_rpm_dbpass=
 awx_rpm_dbname=awx
 awx_rpm_dbhost=127.0.0.1
+
 # Optional choose an external database. This is also required for a setup with multiple AWX-RPMs for HA
 awx_rpm_external_db=false
 # Use postgresql 15, supported from 24.0.0,,required from 24.6.1
 awx_use_postgresql15=true
+# Include postgres in the installation, if not, you have to install it yourself prior to install
+awx_rpm_install_postgres=true
+
 # Configure allowed hostnames
 # awx_rpm_allowedhosts='["hostname1.domain.pub", "hostname2.domain.local"]'
+
+# Configure friendlyname for certificates, allowedhosts and towerurlbase
+#awx_rpm_fqdn=hostname.domain.pub
+
+#Change default webserver port
+#nginx_ssl_port=443
+
+# Change certificates
+# certificates should reside in same folder as this playbook named {{awx_rpm_fqdn}}.crt and {{awx_rpm_fqdn}}.key
+nginx_use_custom_certs=false
+
+# Disable external requirements
+# You will manually need to provide:
+# 1. Access to the EPEL Repository
+# 2. Access to the AWX-RPM Repository
+# 3. Access to the Codeready builder Repository
+awx_rpm_offline_install=false
+
+# Enable external EPEL repo, ignored if awx_rpm_offline_install=true
+awx_rpm_enable_epel=true
 
 [awx-rpm]
 10.0.0.1  ansible_user=root ansible_password=xxxxxxxx

@@ -8,8 +8,13 @@ An ansible playbook for installation is provided in ansible/
 
 Inventory can be configured in ansible/inventory and is documented within the file.
 
+## BYO (Build Your Own)
 
----
+Documentation on setting up a build environment: [Build](docs/build)
+
+Documentation on moving from one release to the next: [New version](docs/generate-new-version)
+
+## Updates
 
 Update: 06-07-2024
 

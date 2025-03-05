@@ -7,12 +7,6 @@
   become: true
   when: ansible_facts.selinux.status == 'enabled'
 
-- name: Enable
-  ansible.builtin.dnf:
-    name: '@postgresql:15'
-    state: present
-  when: awx_use_postgresql15
-
 - name: Put SELinux in permissive mode, TOOD, Re-enable
   ansible.posix.selinux:
     policy: targeted
@@ -20,9 +14,9 @@
   become: true
   when: ansible_facts.selinux.status == 'enabled'
 
-- name: Allow NGINX to listen on tcp port 8043
+- name: Allow NGINX to listen on ssl 
   community.general.seport:
-    ports: 8043
+    ports: "{{ nginx_ssl_port | default ('8043') }}"
     proto: tcp
     setype: http_port_t
     state: present
@@ -64,59 +58,65 @@
   become: true
   when: ansible_facts.selinux.status == 'enabled'
 
-- name: Add the AWX-RPM repository
-  ansible.builtin.yum_repository:
-    name: awx-rpm-{{ awx_rpm_version }}
-    description: awx-rpm repository
-    baseurl: https://rpm.awx.wiki/AWX-RPM/{{ awx_rpm_version }}/
-    gpgcheck: true
-    gpgkey: https://rpm.awx.wiki/AWX-RPM/RPM-GPG-KEY-awx-rpm
-  become: true
+- block:
+  - name: Add the AWX-RPM repository
+    ansible.builtin.yum_repository:
+      name: awx-rpm-{{ awx_rpm_version }}
+      description: awx-rpm repository
+      baseurl: https://rpm.awx.wiki/AWX-RPM/{{ awx_rpm_version }}/
+      gpgcheck: true
+      gpgkey: https://rpm.awx.wiki/AWX-RPM/RPM-GPG-KEY-awx-rpm
+    become: true
 
-- name: Enable the PYPI RPM repo
-  community.general.copr:
-    host: copr.fedorainfracloud.org
-    state: enabled
-    name: '@copr/PyPI'
-    chroot: epel-9-x86_64
-  become: true
+  - name: Enable EPEL
+    ansible.builtin.dnf:
+      name: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm'
+      state: present
+      disable_gpg_check: true
+    become: true
+    when: awx_rpm_enable_epel
 
-- name: Enable EPEL
-  ansible.builtin.dnf:
-    name: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm'
-    state: present
-    disable_gpg_check: true
-  become: true
+  - name: Enable a RHSM repository
+    community.general.rhsm_repository:
+      name: codeready-builder-for-rhel-9-x86_64-rpms
+    become: true
+    when: ansible_facts['distribution'] == 'RedHat' 
 
-- name: Enable a RHSM repository
-  community.general.rhsm_repository:
-    name: codeready-builder-for-rhel-9-x86_64-rpms
-  become: true
-  when: ansible_facts['distribution'] == 'RedHat' 
-
-- name: Enable a CRB repository
-  ansible.builtin.command: /usr/bin/crb enable
-  when: ansible_distribution == 'AlmaLinux' or ansible_distribution == 'Rocky'
-  register: cbr
-  changed_when: cbr.rc == 0
+  - name: Enable a CRB repository
+    ansible.builtin.command: /usr/bin/crb enable
+    when: ansible_distribution == 'AlmaLinux' or ansible_distribution == 'Rocky' or ansible_distribution == 'CentOS'
+    register: cbr
+    changed_when: cbr.rc == 0
+  
+  when: awx_rpm_offline_install == 'false'
 
 - name: Install AWX-RPM
   ansible.builtin.dnf:
     name: awx-rpm
     state: latest
   become: true
-
+  
 - block:
+  - name: Enable
+    ansible.builtin.dnf:
+      name: '@postgresql:15'
+      state: present
+    when: awx_use_postgresql15
+  
   - name: Install PostgreSQL
     ansible.builtin.dnf:
       name: postgresql-server
       state: present
     become: true
+  when: awx_rpm_install_postgres|bool == 1
 
+- block:
   - name: Initialize Postgres Database
     ansible.builtin.shell: /usr/bin/postgresql-setup --initdb
     become: true
-    ignore_errors: true
+    register: postgres_init
+    changed_when: postgres_init.rc == 0
+    failed_when: not ((postgres_init.rc == 1 and "is not empty!" in postgres_init.stderr) or postgres_init.rc == 0)
 
   - name: Install postgres configuration
     ansible.builtin.copy:
@@ -125,14 +125,12 @@
       mode: '0644'
     become: true
 
-
   - name: Start and enable PostgreSQL
     ansible.builtin.service:
       name: postgresql
       state: started
       enabled: true
     become: true
-
 
   - name: Create User and database for AWX-RPM
     ansible.builtin.shell: "{{ item }}"
@@ -142,9 +140,11 @@
       - psql -c "ALTER USER awx WITH PASSWORD '{{ awx_rpm_dbpass }}'";
     become: true
     become_user: postgres
-    ignore_errors: true
+    register: postgres_user
+    changed_when: postgres_user.rc == 0
+    failed_when: not ((postgres_user.rc == 1 and "already exists" in postgres_user.stderr) or postgres_user.rc == 0)
 
-  when: not awx_rpm_external_db|bool
+  when: awx_rpm_external_db|bool == 0
 
 - name: Install AWX-RPM Settings
   ansible.builtin.template:
@@ -216,6 +216,34 @@
       unixsocketperm 770
   become: true
 
+- block:
+  - name: Copy certificate
+    ansible.builtin.copy:
+      src: "{{ awx_rpm_fqdn }}.crt"
+      dest: /etc/pki/tls/certs/{{ awx_rpm_fqdn }}.crt
+  - name: Copy key
+    ansible.builtin.copy:
+      src: "{{ awx_rpm_fqdn }}.key"
+      dest: /etc/pki/tls/private/{{ awx_rpm_fqdn }}.key
+  - name: Change certificate paths
+    ansible.builtin.lineinfile:
+      path: /etc/nginx/conf.d/awx-rpm.conf
+      regexp: "{{ item.regexp }}"
+      line: "{{ item.line }}"
+    with_items:
+     - { regexp: '/etc/nginx/nginx.crt', line: '    ssl_certificate /etc/pki/tls/certs/{{ awx_rpm_fqdn }}.crt;' }
+     - { regexp: '/etc/nginx/nginx.key', line: '    ssl_certificate_key /etc/pki/tls/private/{{ awx_rpm_fqdn }}.key;' }
+  when: nginx_use_custom_certs|bool
+
+- name: Change nginx listening port to the configured one
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/conf.d/awx-rpm.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: 'listen 8043 default_server ssl;', line: 'listen {{ nginx_ssl_port }} default_server ssl;' }
+  when: nginx_ssl_port is defined
+
 - name: Start and enable services
   ansible.builtin.service:
     name: "{{ item }}"
@@ -235,3 +263,21 @@
     - awx-wsrelay.service
     - awx-ws-heartbeat.service
   become: true
+
+- ansible.builtin.pause:
+    seconds: 30
+
+- name: Use awx_rpm_fqdn to set some setting in Tower
+  awx.awx.settings:
+    name: "{{item.name}}"
+    value: "{{item.value}}"
+    tower_host: "https://{{ ansible_host }}:{{nginx_ssl_port | default ('8043')}}"
+    tower_username: "{{ awx_rpm_user }}"
+    tower_password: "{{ awx_rpm_password }}"
+    validate_certs: no  
+  loop:
+   - {name: 'TOWER_URL_BASE', value: "https://{{ awx_rpm_fqdn }}:{{nginx_ssl_port | default ('8043')}}"}
+   - {name: 'CSRF_TRUSTED_ORIGINS', value: "[https://{{ awx_rpm_fqdn }}:{{nginx_ssl_port | default ('8043')}}]"}
+  # - {name: 'ALLOWED_HOSTS', value: "[ '{{ awx_rpm_fqdn }}' ]"}
+  when: awx_rpm_fqdn is defined
+
