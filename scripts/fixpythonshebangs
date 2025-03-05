@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PACKAGENAME=$1
+
+source $(dirname "$0")/common-functions
+
+PYTHONBUILD=$(get_python)
+VERSION=$(get_version)
+
+if [ ! -f $BASEPATH_DIR/versions/deps/python-$PACKAGENAME.spec ]; then
+	if [ ! -f $BASEPATH_DIR/versions/deps/python3-$PACKAGENAME.spec ]; then
+		echo "Package $PACKAGENAME doesn't exist"
+		exit 0
+	else
+		FILENAME=python3-$PACKAGENAME
+	fi
+else
+	FILENAME=python-$PACKAGENAME
+fi
+
+sed -i "0,/BuildRequires/s//BuildRequires: \/usr\/bin\/pathfix.py\n&/" $BASEPATH_DIR/versions/deps/$FILENAME.spec
+
+sed -i "/autosetup/a pathfix.py -pni \"%{__python3} %{py3_shbang_opts}\" ." $BASEPATH_DIR/versions/deps/$FILENAME.spec
+
+sed -i "/pyproject_save_files/a pathfix.py -pni \"%{__python2} %{py2_shbang_opts}\" %{buildroot}" $BASEPATH_DIR/versions/deps/$FILENAME.spec
+
+sed -i "/pyproject_save_files/a pathfix.py -pni \"%{__python3} %{py3_shbang_opts}\" %{buildroot} %{buildroot}%{_bindir}/*" $BASEPATH_DIR/versions/deps/$FILENAME.spec
+
+$BASEPATH_DIR/scripts/buildsrc $FILENAME

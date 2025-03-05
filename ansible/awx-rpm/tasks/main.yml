@@ -190,7 +190,7 @@
   ansible.builtin.shell: "{{ item }}"
   with_items:
     - awx-manage createsuperuser --noinput --username={{ awx_rpm_user }} --email={{ awx_rpm_email }}
-    - awx-manage update_password --username=admin --password={{ awx_rpm_password }}
+    - awx-manage update_password --username={{ awx_rpm_user }} --password={{ awx_rpm_password }}
     - awx-manage register_queue --queuename=controlplane --instance_percent=100
     - awx-manage register_queue --queuename=default --instance_percent=100
   become: true

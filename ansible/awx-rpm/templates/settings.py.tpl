@@ -70,7 +70,7 @@ HOSTNAME = platform.node()
 
 ADMINS = ()
 
-STATIC_ROOT = '/opt/awx-rpm/static'
+STATIC_ROOT = '/opt/awx-rpm/public/static'
 
 SECRET_KEY = get_secret()
 
