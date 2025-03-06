@@ -1,9 +1,19 @@
 #!/bin/bash
 
 PACKAGENAME=$1
+source $(dirname "$0")/common-functions
 
-if [ ! -f /opt/awx-rpm-v2/versions/deps/python-$PACKAGENAME.spec ]; then
-	if [ ! -f /opt/awx-rpm-v2/versions/deps/python3-$PACKAGENAME.spec ]; then
+PYTHONBUILD=$(get_python)
+VERSION=$(get_version)
+
+if [[ "$3" == "nobuild" ]] || [[ "$2" == "nobuild" ]]; then
+        BUILDSRC=0
+else
+        BUILDSRC=1
+fi
+
+if [ ! -f $BASEPATH_DIR/versions/deps/python-$PACKAGENAME.spec ]; then
+	if [ ! -f $BASEPATH_DIR/versions/deps/python3-$PACKAGENAME.spec ]; then
 		echo "Package $PACKAGENAME doesn't exist"
 		exit 0
 	else
@@ -13,7 +23,10 @@ else
 	FILENAME=python-$PACKAGENAME
 fi
 
-sed -i "/^%pyproject_extras_subpkg/d" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
-sed -i "s/^%pyproject_buildrequires.*/%pyproject_buildrequires/g" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+sed -i "/^%pyproject_extras_subpkg/d" $BASEPATH_DIR/versions/deps/$FILENAME.spec
+sed -i "s/^%pyproject_buildrequires.*/%pyproject_buildrequires/g" $BASEPATH_DIR/versions/deps/$FILENAME.spec
 
-/opt/awx-rpm-v2/scripts/buildsrc $FILENAME
+if [[ "$BUILDSRC" == "1" ]];then
+        $(dirname "$0")/buildsrc $PACKAGENAME $PACKAGEVERSION
+fi
+

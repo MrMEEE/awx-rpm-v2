@@ -4,8 +4,13 @@ PACKAGENAME=$1
 DEPENDENCY=$2
 WHERE=$3
 
-if [ ! -f /opt/awx-rpm-v2/versions/deps/python-$PACKAGENAME.spec ]; then
-	if [ ! -f /opt/awx-rpm-v2/versions/deps/python3-$PACKAGENAME.spec ]; then
+source $(dirname "$0")/common-functions
+
+PYTHONBUILD=$(get_python)
+VERSION=$(get_version)
+
+if [ ! -f $BASEPATH_DIR/versions/deps/python-$PACKAGENAME.spec ]; then
+	if [ ! -f $BASEPATH_DIR/versions/deps/python3-$PACKAGENAME.spec ]; then
 		echo "Package $PACKAGENAME doesn't exist"
 		exit 0
 	else
@@ -23,14 +28,15 @@ fi
 if [[ "${WHERE}" != both ]] && [[ "${WHERE}" != build ]] && [[ "${WHERE}" != runtime ]] ; then
         echo "Please specify where to add the dependency"
 	echo "Either 'build', 'run' or 'both'"
+	exit 3
 fi	
 
 if [[ "${WHERE}" == both ]] || [[ "${WHERE}" == build ]]; then
-	sed -i "0,/BuildRequires/s//BuildRequires: $(echo $DEPENDENCY)\n&/" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+	sed -i "0,/BuildRequires/s//BuildRequires: $(echo $DEPENDENCY)\n&/" $BASEPATH_DIR/versions/deps/$FILENAME.spec
 fi
 
 if [[ "${WHERE}" == both ]] || [[ "${WHERE}" == runtime ]]; then
-        sed -i "0,/BuildRequires/s//Requires: $(echo $DEPENDENCY)\n&/" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+        sed -i "0,/BuildRequires/s//Requires: $(echo $DEPENDENCY)\n&/" $BASEPATH_DIR/versions/deps/$FILENAME.spec
 fi
 
-/opt/awx-rpm-v2/scripts/buildsrc $FILENAME
+$BASEPATH_DIR/scripts/buildsrc $FILENAME

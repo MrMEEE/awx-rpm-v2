@@ -5,14 +5,14 @@ source $(dirname "$0")/common-functions
 PYTHONBUILD=$(get_python)
 VERSION=$(get_version)
 
-if [ ! -d "/opt/awx-rpm-v2/versions/deps" ]; then
+if [ ! -d "$BASEPATH_DIR/versions/deps" ]; then
         echo "SPECs for version $VERSION not generated"
         exit 1
 fi
 
 FORMAT=$2
 
-cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+cd "$BASEPATH_DIR/rpmbuilds/$VERSION/RPMS/"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -49,22 +49,22 @@ else
 	echo "Package build status for version: $VERSION"
 fi
 
-for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do 
+for i in `ls $BASEPATH_DIR/rpmbuilds/$VERSION/SRPMS/`;do 
 	PACKAGE=$(echo $i |sed 's/.src.rpm//g' |sed "s/python/python$PYTHONBUILD/g" | sed "s/python$(echo $PYTHONBUILD)3/python$PYTHONBUILD/g")
-	PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
+	PACKAGEPRESENT=$(ls $BASEPATH_DIR/rpmbuilds/$VERSION/RPMS/$PACKAGE* 2> /dev/null)
 	PYTHONPACKAGE=$(echo $PACKAGE | sed "s/python$PYTHONBUILD/python$PYTHONBUILD-python/g")
-	PYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
+	PYTHONPACKAGEPRESENT=$(ls $BASEPATH_DIR/rpmbuilds/$VERSION/RPMS/$PYTHONPACKAGE* 2> /dev/null)
 	PYTHON3PACKAGE=$(echo $PACKAGE | sed "s/python$PYTHONBUILD/python$PYTHONBUILD-python3/g")
-        PYTHON3PACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$PYTHON3PACKAGE* 2> /dev/null)
+        PYTHON3PACKAGEPRESENT=$(ls $BASEPATH_DIR/rpmbuilds/$VERSION/RPMS/$PYTHON3PACKAGE* 2> /dev/null)
 	ALTPACKAGE=$(echo $PACKAGE | sed "s/python$PYTHONBUILD/python/g")
-	ALTPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$ALTPACKAGE* 2> /dev/null)
+	ALTPACKAGEPRESENT=$(ls $BASEPATH_DIR/rpmbuilds/$VERSION/RPMS/$ALTPACKAGE* 2> /dev/null)
 	GITPYTHON=$(echo $PACKAGE | sed "s/gitpython$(echo $PYTHONBUILD)/gitpython/g")
-	GITPYTHONPACKAGEPRESENT=$(ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/$GITPYTHON* 2> /dev/null)
+	GITPYTHONPACKAGEPRESENT=$(ls $BASEPATH_DIR/rpmbuilds/$VERSION/RPMS/$GITPYTHON* 2> /dev/null)
         if [[ "$PACKAGEPRESENT" != "" ]] || [[ "$PYTHONPACKAGEPRESENT" != "" ]] || [[ "$PYTHON3PACKAGEPRESENT" != "" ]] || [[ "$ALTPACKAGEPRESENT" != "" ]] || [[ "$GITPYTHONPACKAGEPRESENT" != "" ]]; then
 		BUILT=$((BUILT+1)) 
 		if [[ "$1" == "all" ]]; then
 			if [[ "$FORMAT" == "md" ]]; then
-				if [ -f /opt/awx-rpm-v2/versions/logs/$i.log ]; then
+				if [ -f $BASEPATH_DIR/versions/logs/$i.log ]; then
 					echo "$PACKAGE | $i | Built | [Log](logs/$i.log)"
 				else
 					echo "$PACKAGE | $i | Built |"
@@ -75,7 +75,7 @@ for i in `ls /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/`;do
 		fi 
 	else  
 		if [[ "$FORMAT" == "md" ]]; then
-			if [ -f /opt/awx-rpm-v2/versions/logs/$i.log ]; then
+			if [ -f $BASEPATH_DIR/versions/logs/$i.log ]; then
 				echo "$PACKAGE | $i | **Missing** | [Log](logs/$i.log)"
 			else
 				echo "$PACKAGE | $i | **Missing** |"

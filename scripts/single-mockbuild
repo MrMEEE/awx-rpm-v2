@@ -4,29 +4,31 @@ source $(dirname "$0")/common-functions
 
 VERSION=$(get_version)
 
-ARG1=$1
-ARG2=$2
-
-RPMPACKAGE=$1
-
-if [ ! -d "/opt/awx-rpm-v2/versions/deps" ]; then
+if [ ! -d "$BASEPATH_DIR/versions/deps" ]; then
         echo "SPECs for version $VERSION not generated"
         exit 1
 fi
 
-if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$RPMPACKAGE" ];then
+
+for RPMPACKAGE in $@; do
+
+if [ ! -f "$BASEPATH_DIR/rpmbuilds/$VERSION/SRPMS/$RPMPACKAGE" ];then
 	SRPMALT=$(echo $SRPM |sed 's/python/python3/g')
-	if [ ! -f "/opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$SRPMALT" ];then
-		echo "Source file: /opt/awx-rpm-v2/rpmbuilds/$VERSION/SRPMS/$RPMPACKAGE, doesn't exist.."
+	if [ ! -f "$BASEPATH_DIR/rpmbuilds/$VERSION/SRPMS/$SRPMALT" ];then
+		echo "Source file: $BASEPATH_DIR/rpmbuilds/$VERSION/SRPMS/$RPMPACKAGE, doesn't exist.."
 		exit 2
 	else
 		SRPM=$SRPMALT
 	fi
 fi
 
-mkdir -p "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+done
 
-cd "/opt/awx-rpm-v2/rpmbuilds/$VERSION/RPMS/"
+mkdir -p "$BASEPATH_DIR/rpmbuilds/$VERSION/RPMS/"
+
+cd "$BASEPATH_DIR/rpmbuilds/$VERSION/RPMS/"
+
+for RPMPACKAGE in $@; do
 
 mock -r epel-9-x86_64 --clean &> /dev/null 
 
@@ -36,3 +38,4 @@ NC='\033[0m' # No Color
 
 build_rpm $RPMPACKAGE
 
+done

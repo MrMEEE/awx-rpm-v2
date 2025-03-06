@@ -1,7 +1,7 @@
 #!/bin/bash
 
-/opt/awx-rpm-v2/scripts/buildsrc force
-cd /opt/awx-rpm-v2/versions
+$BASEPATH_DIR/scripts/buildsrc force
+cd $BASEPATH_DIR/versions
 git add deps
 git commit -qam "Source Built"
 git push

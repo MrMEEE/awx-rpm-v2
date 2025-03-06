@@ -5,23 +5,23 @@ source $(dirname "$0")/common-functions
 VERSION=$(get_version)
 PACKAGE=$1
 
-if [ ! -d "/opt/awx-rpm-v2/versions/deps/original" ]; then
+if [ ! -d "$BASEPATH_DIR/versions/deps/original" ]; then
 	echo "SPECs for version $VERSION not generated"
 	exit 1
 fi
 
 echo "Fetching sources for version $VERSION"
 
-cd "/opt/awx-rpm-v2/versions/deps/"
+cd "$BASEPATH_DIR/versions/deps/"
 
 if [[ $PACKAGE == "" ]];then
 	for i in `ls *.spec`;do 
-		spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $i 
+		spectool -gR --define "_topdir $BASEPATH_DIR/rpmbuilds/$VERSION/" $i 
 	done
 else
 	if [ -f $PACKAGE.spec ];then
-		spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" $PACKAGE.spec
+		spectool -gR --define "_topdir $BASEPATH_DIR/rpmbuilds/$VERSION/" $PACKAGE.spec
 	else
-		spectool -gR --define "_topdir /opt/awx-rpm-v2/rpmbuilds/$VERSION/" python-$PACKAGE.spec
+		spectool -gR --define "_topdir $BASEPATH_DIR/rpmbuilds/$VERSION/" python-$PACKAGE.spec
 	fi
 fi

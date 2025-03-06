@@ -8,13 +8,13 @@ else
 	FROMVERSION=$2
 fi
 
-cd /opt/awx-rpm-v2/versions/
+cd $BASEPATH_DIR/versions/
 
 if [ -z "$FROMVERSION" ]; then
 	echo "Existing version not defined"
 	echo "Select from:"
 	echo
-	cd /opt/awx-rpm-v2/versions/
+	cd $BASEPATH_DIR/versions/
         git branch -rv |cut -f2- -d\/
         exit 1
 fi
@@ -30,107 +30,107 @@ if [ -z "$NEWVERSION" ]; then
         echo "Please provide New AWX version"
         echo "Select from"
 	echo
-        cd /opt/awx-rpm-v2/awx/
+        cd $BASEPATH_DIR/awx/
         git ls-remote --tags origin | cut -f3- -d\/ |grep -v "{}" |sort -Vr
 	#git branch -rv |cut -f2- -d\/
         exit 1
 fi
 
-if [[ "`cd /opt/awx-rpm-v2/awx/ && git ls-remote --tags origin | cut -f3- -d\/ |grep -v "{}" | grep -x $NEWVERSION |wc -l`" != "1" ]]; then
+if [[ "`cd $BASEPATH_DIR/awx/ && git ls-remote --tags origin | cut -f3- -d\/ |grep -v "{}" | grep -x $NEWVERSION |wc -l`" != "1" ]]; then
 	echo "Version: $NEWVERSION doesn't exist"
 	exit 1
 fi
 
-rm -rf /opt/awx-rpm-v2/migration
-mkdir -p /opt/awx-rpm-v2/migration/{source,orig,conf,patch,awx-rpm}
-cp -ar /opt/awx-rpm-v2/versions/deps/extra-sources /opt/awx-rpm-v2/migration
-mkdir -p /opt/awx-rpm-v2/rpmbuilds/$NEWVERSION/SOURCES/
-cp /opt/awx-rpm-v2/versions/deps/extra-sources/* /opt/awx-rpm-v2/rpmbuilds/$NEWVERSION/SOURCES/
-cp /opt/awx-rpm-v2/versions/PYTHON /opt/awx-rpm-v2/migration/
-if [ -d /opt/awx-rpm-v2/versions/awx-rpm ]; then
-	for i in `ls /opt/awx-rpm-v2/versions/awx-rpm/*-$FROMVERSION | xargs -n 1 basename`;do
+rm -rf $BASEPATH_DIR/migration
+mkdir -p $BASEPATH_DIR/migration/{source,orig,conf,patch,awx-rpm}
+cp -ar $BASEPATH_DIR/versions/deps/extra-sources $BASEPATH_DIR/migration
+mkdir -p $BASEPATH_DIR/rpmbuilds/$NEWVERSION/SOURCES/
+cp $BASEPATH_DIR/versions/deps/extra-sources/* $BASEPATH_DIR/rpmbuilds/$NEWVERSION/SOURCES/
+cp $BASEPATH_DIR/versions/PYTHON $BASEPATH_DIR/migration/
+if [ -d $BASEPATH_DIR/versions/awx-rpm ]; then
+	for i in `ls $BASEPATH_DIR/versions/awx-rpm/*-$FROMVERSION | xargs -n 1 basename`;do
 		FILENAME=$(echo $i | sed "s/-$FROMVERSION/-$NEWVERSION/g")
-		cp /opt/awx-rpm-v2/versions/awx-rpm/$i /opt/awx-rpm-v2/migration/awx-rpm/$FILENAME
+		cp $BASEPATH_DIR/versions/awx-rpm/$i $BASEPATH_DIR/migration/awx-rpm/$FILENAME
 	done
 fi
 
-cp -a /opt/awx-rpm-v2/versions/deps/*.spec /opt/awx-rpm-v2/migration/source/
-rm -f /opt/awx-rpm-v2/migration/source/awx*
-for i in `ls /opt/awx-rpm-v2/migration/source/`;do
-	if [ -f /opt/awx-rpm-v2/versions/deps/original/$i ];then
-		cp /opt/awx-rpm-v2/versions/deps/original/$i /opt/awx-rpm-v2/migration/orig/
+cp -a $BASEPATH_DIR/versions/deps/*.spec $BASEPATH_DIR/migration/source/
+rm -f $BASEPATH_DIR/migration/source/awx*
+for i in `ls $BASEPATH_DIR/migration/source/`;do
+	if [ -f $BASEPATH_DIR/versions/deps/original/$i ];then
+		cp $BASEPATH_DIR/versions/deps/original/$i $BASEPATH_DIR/migration/orig/
 	else
-		cp /opt/awx-rpm-v2/migration/source/$i /opt/awx-rpm-v2/migration/orig/
+		cp $BASEPATH_DIR/migration/source/$i $BASEPATH_DIR/migration/orig/
 	fi
 done
-cp -a /opt/awx-rpm-v2/versions/deps/*.conf /opt/awx-rpm-v2/migration/conf/
+cp -a $BASEPATH_DIR/versions/deps/*.conf $BASEPATH_DIR/migration/conf/
 
-cd /opt/awx-rpm-v2/migration/
+cd $BASEPATH_DIR/migration/
 
-for i in `ls /opt/awx-rpm-v2/migration/source/`;do
+for i in `ls $BASEPATH_DIR/migration/source/`;do
 
 	NAME=$(echo $i |cut -f1 -d.)
-	diff --ignore-all-space -uNr orig/$i source/$i > /opt/awx-rpm-v2/migration/patch/$NAME.patch
+	diff --ignore-all-space -uNr orig/$i source/$i > $BASEPATH_DIR/migration/patch/$NAME.patch
 
 done
 
-find /opt/awx-rpm-v2/migration/patch/ -type f -empty -delete
+find $BASEPATH_DIR/migration/patch/ -type f -empty -delete
 
-cp /opt/awx-rpm-v2/versions/deps/{extra-deps.txt,remove-deps.txt,rhel-deps.txt} /opt/awx-rpm-v2/migration/
+cp $BASEPATH_DIR/versions/deps/{extra-deps.txt,remove-deps.txt,rhel-deps.txt} $BASEPATH_DIR/migration/
 
-cd /opt/awx-rpm-v2/versions/
+cd $BASEPATH_DIR/versions/
 
 git switch --orphan $NEWVERSION
 
-touch /opt/awx-rpm-v2/versions/VERSION-$NEWVERSION
+touch $BASEPATH_DIR/versions/VERSION-$NEWVERSION
 
-git add /opt/awx-rpm-v2/versions/VERSION-$NEWVERSION
+git add $BASEPATH_DIR/versions/VERSION-$NEWVERSION
 
 git commit -qam "Created Version $NEWVERSION"
 
 git push -u origin $NEWVERSION
 
-/opt/awx-rpm-v2/scripts/changeversion $NEWVERSION
+$BASEPATH_DIR/scripts/changeversion $NEWVERSION
 
-/opt/awx-rpm-v2/scripts/pypi2spec
-for i in `cat /opt/awx-rpm-v2/migration/extra-deps.txt`; do
+$BASEPATH_DIR/scripts/pypi2spec
+for i in `cat $BASEPATH_DIR/migration/extra-deps.txt`; do
 
 	PACKAGENAME=$(echo $i | cut -f1 -d=)
 	VERSION=$(echo $i | cut -f3 -d=)
 	
 	echo "Adding package $PACKAGENAME $VERSION"
 	if [[ "$PACKAGENAME" == "$VERSION" ]];then
-		/opt/awx-rpm-v2/scripts/addpackage $PACKAGENAME nobuild
+		$BASEPATH_DIR/scripts/addpackage $PACKAGENAME nobuild
 	else 
-		/opt/awx-rpm-v2/scripts/addpackage $PACKAGENAME $VERSION nobuild
+		$BASEPATH_DIR/scripts/addpackage $PACKAGENAME $VERSION nobuild
 	fi
 
 done
 
-cp /opt/awx-rpm-v2/migration/remove-deps.txt /opt/awx-rpm-v2/versions/deps/remove-deps.txt
-cp /opt/awx-rpm-v2/migration/rhel-deps.txt /opt/awx-rpm-v2/versions/deps/rhel-deps.txt
-cp -ar /opt/awx-rpm-v2/migration/extra-sources /opt/awx-rpm-v2/versions/deps/
-cp /opt/awx-rpm-v2/migration/PYTHON /opt/awx-rpm-v2/versions/PYTHON
-mkdir -p /opt/awx-rpm-v2/versions/awx-rpm
-cp /opt/awx-rpm-v2/migration/awx-rpm/* /opt/awx-rpm-v2/versions/awx-rpm/
+cp $BASEPATH_DIR/migration/remove-deps.txt $BASEPATH_DIR/versions/deps/remove-deps.txt
+cp $BASEPATH_DIR/migration/rhel-deps.txt $BASEPATH_DIR/versions/deps/rhel-deps.txt
+cp -ar $BASEPATH_DIR/migration/extra-sources $BASEPATH_DIR/versions/deps/
+cp $BASEPATH_DIR/migration/PYTHON $BASEPATH_DIR/versions/PYTHON
+mkdir -p $BASEPATH_DIR/versions/awx-rpm
+cp $BASEPATH_DIR/migration/awx-rpm/* $BASEPATH_DIR/versions/awx-rpm/
 
-for i in `cat /opt/awx-rpm-v2/migration/remove-deps.txt /opt/awx-rpm-v2/migration/rhel-deps.txt`; do
+for i in `cat $BASEPATH_DIR/migration/remove-deps.txt $BASEPATH_DIR/migration/rhel-deps.txt`; do
 	PACKAGENAME=$(echo $i | sed "s/python//g" | sed "s/python3//g")
 	echo "Removing package $PACKAGENAME"
-	rm -f /opt/awx-rpm-v2/versions/deps/*$PACKAGENAME.spec
-	rm -f /opt/awx-rpm-v2/versions/deps/*$PACKAGENAME.conf
-	rm -f /opt/awx-rpm-v2/versions/deps/original/*$PACKAGENAME.spec
-        rm -f /opt/awx-rpm-v2/versions/deps/original/*$PACKAGENAME.conf
+	rm -f $BASEPATH_DIR/versions/deps/*$PACKAGENAME.spec
+	rm -f $BASEPATH_DIR/versions/deps/*$PACKAGENAME.conf
+	rm -f $BASEPATH_DIR/versions/deps/original/*$PACKAGENAME.spec
+        rm -f $BASEPATH_DIR/versions/deps/original/*$PACKAGENAME.conf
 done
 
-cd /opt/awx-rpm-v2/versions/
-git add /opt/awx-rpm-v2/versions/*
+cd $BASEPATH_DIR/versions/
+git add $BASEPATH_DIR/versions/*
 git commit -qam "Imported from version $FROMVERSION to version $NEWVERSION"
 git push
 
-/opt/awx-rpm-v2/scripts/getsources
+$BASEPATH_DIR/scripts/getsources
 
 echo "Applying patches from version: $FROMVERSION"
 
-/opt/awx-rpm-v2/scripts/applypatches
+$BASEPATH_DIR/scripts/applypatches
 

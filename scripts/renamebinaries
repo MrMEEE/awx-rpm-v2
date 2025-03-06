@@ -1,9 +1,14 @@
 #!/bin/bash
 
 PACKAGENAME=$1
+source $(dirname "$0")/common-functions
 
-if [ ! -f /opt/awx-rpm-v2/versions/deps/python-$PACKAGENAME.spec ]; then
-	if [ ! -f /opt/awx-rpm-v2/versions/deps/python3-$PACKAGENAME.spec ]; then
+PYTHONBUILD=$(get_python)
+VERSION=$(get_version)
+
+
+if [ ! -f $BASEPATH_DIR/versions/deps/python-$PACKAGENAME.spec ]; then
+	if [ ! -f $BASEPATH_DIR/versions/deps/python3-$PACKAGENAME.spec ]; then
 		echo "Package $PACKAGENAME doesn't exist"
 		exit 0
 	else
@@ -12,26 +17,52 @@ if [ ! -f /opt/awx-rpm-v2/versions/deps/python-$PACKAGENAME.spec ]; then
 else
 	FILENAME=python-$PACKAGENAME
 fi
+
+ALTERNATIVES="# START ALTERNATIVES\n"
+ALTERNATIVES=${ALTERNATIVES}"%post -n python%{python3_pkgversion}-$PACKAGENAME\n"
+ALTERNATIVES=${ALTERNATIVES}"if [[   \"$1\" ==  \"1\" ]]; then\n"
+ALTERNATIVES=${ALTERNATIVES}"for i in \`cat /usr/bin/%{name}-binfiles\`;do\n"
+ALTERNATIVES=${ALTERNATIVES}"        alternatives --install /usr/bin/\$i \$i /usr/bin/\${i}3.11 10\n"
+ALTERNATIVES=${ALTERNATIVES}"done\n"
+ALTERNATIVES=${ALTERNATIVES}"fi\n"
+ALTERNATIVES=${ALTERNATIVES}"\n"
+ALTERNATIVES=${ALTERNATIVES}"%preun -n python%{python3_pkgversion}-$PACKAGENAME\n"
+ALTERNATIVES=${ALTERNATIVES}"if [[ \"$1\" ==  \"0\" ]]; then\n"
+ALTERNATIVES=${ALTERNATIVES}"for i in \`cat /usr/bin/%{name}-binfiles\`;do\n"
+ALTERNATIVES=${ALTERNATIVES}"        alternatives --remove \$i /usr/bin/\${i}3.11\n"
+ALTERNATIVES=${ALTERNATIVES}"done\n"
+ALTERNATIVES=${ALTERNATIVES}"fi\n"
+ALTERNATIVES=${ALTERNATIVES}"# END ALTERNATIVES\n"
+
 BEFORE="# START RENAMING OF BINARIES 1\n"
-BEFORE="$BEFORE%if \"%{python3_pkgversion}\" != \"3\"\n"
-for binary in "${@:2}"; do
-	BEFORE=$BEFORE"mv \$RPM_BUILD_ROOT/usr/bin/$binary \$RPM_BUILD_ROOT/usr/bin/$binary%{python3_pkgversion}\n"
-done
-BEFORE="$BEFORE%endif\n"
-BEFORE="$BEFORE# END RENAMING OF BINARIES 1\n"
+BEFORE="${BEFORE}%if \"%{python3_pkgversion}\" != \"3\"\n"
+BEFORE="${BEFORE}cd \$RPM_BUILD_ROOT/usr/bin/\n"
+BEFORE="${BEFORE}ls | tee \$RPM_BUILD_ROOT/usr/bin/%{name}-binfiles\n"
+BEFORE="${BEFORE}sed -i \"/%{name}-binfiles/d\" \$RPM_BUILD_ROOT/usr/bin/%{name}-binfiles\n"
+BEFORE="${BEFORE}for i in \`cat \$RPM_BUILD_ROOT/usr/bin/%{name}-binfiles\`;do\n"
+BEFORE="${BEFORE}echo \"Renaming \$i to \$(echo \$i)%{python3_pkgversion}\"\n"
+BEFORE="${BEFORE}mv \$RPM_BUILD_ROOT/usr/bin/\$i \$RPM_BUILD_ROOT/usr/bin/\$(echo \$i)%{python3_pkgversion}\n"
+BEFORE="${BEFORE}done\n"
+BEFORE="${BEFORE}%endif\n"
+BEFORE="${BEFORE}# END RENAMING OF BINARIES 1\n"
 
 AFTER="# START RENAMING OF BINARIES 2\n"
-AFTER="$AFTER%if \"%{python3_pkgversion}\" != \"3\"\n"
-for binary in "${@:2}"; do
-	AFTER=$AFTER"sed -i \"s|/usr/bin/$binary\$|/usr/bin/$binary%{python3_pkgversion}|g\" %{pyproject_files}\n"
-done
-AFTER="$AFTER%endif\n"
-AFTER="$AFTER# END RENAMING OF BINARIES 2\n"
+AFTER="${AFTER}%if \"%{python3_pkgversion}\" != \"3\"\n"
+AFTER="${AFTER}cd \$RPM_BUILD_ROOT/usr/bin/\n"
+AFTER="${AFTER}for i in \`cat \$RPM_BUILD_ROOT/usr/bin/%{name}-binfiles\`;do\n"
+AFTER="${AFTER}echo \"Renaming: \$i to \$(echo \$i)%{python3_pkgversion}\"\n"
+AFTER="${AFTER}sed -i \"s|/usr/bin/\$i\\\$|/usr/bin/\$(echo \$i)%{python3_pkgversion}|g\" %{pyproject_files}\n"
+AFTER="${AFTER}done\n"
+AFTER="${AFTER}echo /usr/bin/%{name}-binfiles >> %{pyproject_files}\n"
+AFTER="${AFTER}%endif\n"
+AFTER="${AFTER}# END RENAMING OF BINARIES 2\n"
 
-sed -i "/# START RENAMING OF BINARIES 1/,/# END RENAMING OF BINARIES 1/d" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
-sed -i "/# START RENAMING OF BINARIES 2/,/# END RENAMING OF BINARIES 2/d" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+sed -i "/# START RENAMING OF BINARIES 1/,/# END RENAMING OF BINARIES 1/d" $BASEPATH_DIR/versions/deps/$FILENAME.spec
+sed -i "/# START RENAMING OF BINARIES 2/,/# END RENAMING OF BINARIES 2/d" $BASEPATH_DIR/versions/deps/$FILENAME.spec
+sed -i "/# START ALTERNATIVES/,/# END ALTERNATIVES/d" $BASEPATH_DIR/versions/deps/$FILENAME.spec
 
-sed -i "/%pyproject_save_files/i $BEFORE" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
-sed -i "/%pyproject_save_files/a $AFTER" /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+sed -i "/%pyproject_save_files/i $BEFORE" $BASEPATH_DIR/versions/deps/$FILENAME.spec
+sed -i "/%pyproject_save_files/a $AFTER" $BASEPATH_DIR/versions/deps/$FILENAME.spec
+sed -i "/%description -n/a $ALTERNATIVES" $BASEPATH_DIR/versions/deps/$FILENAME.spec
 
-/opt/awx-rpm-v2/scripts/buildsrc $FILENAME
+$BASEPATH_DIR/scripts/buildsrc $FILENAME

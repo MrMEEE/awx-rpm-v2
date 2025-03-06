@@ -4,7 +4,7 @@ source $(dirname "$0")/common-functions
 
 VERSION=$(get_version)
 
-cd /opt/awx-rpm-v2/versions
+cd $BASEPATH_DIR/versions
 
 git add .
 

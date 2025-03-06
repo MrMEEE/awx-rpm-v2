@@ -9,7 +9,7 @@ echo "Generating SPECs for version $VERSION"
 PACKAGE=$1
 PACKAGEVERSION=$2
 
-cd /opt/awx-rpm-v2/awx/
+cd $BASEPATH_DIR/awx/
 
 git stash
 git checkout -f -q devel
@@ -22,29 +22,29 @@ else
 	exit 1
 fi
 
-mkdir -p /opt/awx-rpm-v2/versions/deps
+mkdir -p $BASEPATH_DIR/versions/deps
 
-cat /opt/awx-rpm-v2/awx/requirements/requirements.txt | grep -v "#" > /opt/awx-rpm-v2/versions/deps/requirements.txt
+cat $BASEPATH_DIR/awx/requirements/requirements.txt | grep -v "#" > $BASEPATH_DIR/versions/deps/requirements.txt
 
-cd /opt/awx-rpm-v2/versions/deps/
-mkdir -p /opt/awx-rpm-v2/versions/deps/original
+cd $BASEPATH_DIR/versions/deps/
+mkdir -p $BASEPATH_DIR/versions/deps/original
 if [[ $PACKAGE == "" ]];then
-	for i in `cat /opt/awx-rpm-v2/versions/deps/requirements.txt | sed 's/\[.*\]//'`;do 
+	for i in `cat $BASEPATH_DIR/versions/deps/requirements.txt | sed 's/\[.*\]//'`;do 
 		PACKAGE=$(echo $i | cut -f1 -d"=") 
 		PACKAGEVERSION=$(echo $i | cut -f3 -d"=")
 		echo "Generating SPEC-file for $PACKAGE version $PACKAGEVERSION"
 		pyp2spec -p 3.11 --license gpl -v $PACKAGEVERSION $PACKAGE 
-		cp /opt/awx-rpm-v2/versions/deps/*$PACKAGE.spec /opt/awx-rpm-v2/versions/deps/*$PACKAGE.conf /opt/awx-rpm-v2/versions/deps/original/
+		cp $BASEPATH_DIR/versions/deps/*$PACKAGE.spec $BASEPATH_DIR/versions/deps/*$PACKAGE.conf $BASEPATH_DIR/versions/deps/original/
 	done
 else
         if [[ $PACKAGEVERSION == "" ]];then
 		echo "Generating SPEC-file for $PACKAGE"
         	pyp2spec -p 3.11 --license gpl $PACKAGE
-		cp /opt/awx-rpm-v2/versions/deps/*$PACKAGE.spec /opt/awx-rpm-v2/versions/deps/*$PACKAGE.conf /opt/awx-rpm-v2/versions/deps/original/
+		cp $BASEPATH_DIR/versions/deps/*$PACKAGE.spec $BASEPATH_DIR/versions/deps/*$PACKAGE.conf $BASEPATH_DIR/versions/deps/original/
 	else
 		echo "Generating SPEC-file for $PACKAGE version $PACKAGEVERSION"
 	        pyp2spec -p 3.11 --license gpl -v $PACKAGEVERSION $PACKAGE
-		cp /opt/awx-rpm-v2/versions/deps/*$PACKAGE.spec /opt/awx-rpm-v2/versions/deps/*$PACKAGE.conf /opt/awx-rpm-v2/versions/deps/original/
+		cp $BASEPATH_DIR/versions/deps/*$PACKAGE.spec $BASEPATH_DIR/versions/deps/*$PACKAGE.conf $BASEPATH_DIR/versions/deps/original/
 	fi
 fi
 

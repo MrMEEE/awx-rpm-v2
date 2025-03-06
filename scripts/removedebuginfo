@@ -1,9 +1,13 @@
 #!/bin/bash
 
 PACKAGENAME=$1
+source $(dirname "$0")/common-functions
 
-if [ ! -f /opt/awx-rpm-v2/versions/deps/python-$PACKAGENAME.spec ]; then
-	if [ ! -f /opt/awx-rpm-v2/versions/deps/python3-$PACKAGENAME.spec ]; then
+PYTHONBUILD=$(get_python)
+VERSION=$(get_version)
+
+if [ ! -f $BASEPATH_DIR/versions/deps/python-$PACKAGENAME.spec ]; then
+	if [ ! -f $BASEPATH_DIR/versions/deps/python3-$PACKAGENAME.spec ]; then
 		echo "Package $PACKAGENAME doesn't exist"
 		exit 0
 	else
@@ -15,6 +19,6 @@ fi
 
 
 
-sed -i '1i%global debug_package %{nil}' /opt/awx-rpm-v2/versions/deps/$FILENAME.spec
+sed -i '1i%global debug_package %{nil}' $BASEPATH_DIR/versions/deps/$FILENAME.spec
 
-/opt/awx-rpm-v2/scripts/buildsrc $FILENAME
+$BASEPATH_DIR/scripts/buildsrc $FILENAME
