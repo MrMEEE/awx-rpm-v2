@@ -45,7 +45,6 @@ BuildRequires: make python%{python3_pkgversion} python%{python3_pkgversion}-deve
 ¤BUILDREQUIRES¤
 
 Requires: python%{python3_pkgversion} python%{python3_pkgversion}-pyparsing nodejs >= 18 npm gettext git nginx redis xmlsec1-openssl xmlsec1 podman sscg awx-receptor libpq 
-¤REQUIRES¤
 
 %{?systemd_requires}
 

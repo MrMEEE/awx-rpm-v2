@@ -65,7 +65,7 @@
       description: awx-rpm repository
       baseurl: https://rpm.awx.wiki/AWX-RPM/{{ awx_rpm_version }}/
       gpgcheck: true
-      gpgkey: https://rpm.awx.wiki/AWX-RPM/RPM-GPG-KEY-awx-rpm
+      gpgkey: https://rpm.awx.wiki/AWX-RPM/RPM-GPG-KEY-awx-rpm-2025
     become: true
 
   - name: Enable EPEL

@@ -43,7 +43,8 @@ Vendor: AWX
 Prefix: %{_prefix}
 AutoReqProv: false
 
-Requires: python%{python3_pkgversion} awx-core awx-ui
+Requires: python%{python3_pkgversion} awx-core awx-ui awx-rpm-manage
+¤REQUIRES¤
 
 %{?systemd_requires}
 
